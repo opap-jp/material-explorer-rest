@@ -1,0 +1,4 @@
+database:
+  database: material-explorer_test
+
+auth-dummy-login: true
