@@ -8,14 +8,15 @@ license: BSD3
 github: opap-jp/material-explorer
 extra-source-files:
 - README.md
+dependencies:
+- base >= 4.7 && <5
 library:
   source-dirs: src
   exposed-modules:
   - Lib
   dependencies:
-  - base >=4.7 && <5
 executables:
-  material-explorer-exe:
+  rest:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -23,8 +24,11 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - base
+    # - base
     - material-explorer
+    - aeson
+    - Spock >= 0.12
+    - text
 tests:
   material-explorer-test:
     main: Spec.hs
@@ -34,7 +38,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - base
+    # - base
     - material-explorer
 flags:
   library-only:
