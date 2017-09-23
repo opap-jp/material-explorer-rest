@@ -6,13 +6,13 @@ MAINTAINER OPAP-JP
 # 依存パッケージを取得します
 RUN mkdir /root/app
 WORKDIR /root/app
-COPY rest/package.yaml .
-COPY rest/stack.yaml .
+COPY package.yaml .
+COPY stack.yaml .
 RUN stack setup
 RUN stack build --dependencies-only
 
 # アプリケーションのソースをコピーし、ビルドします
-COPY rest .
+COPY . .
 RUN stack build
 
 # ポート開放
