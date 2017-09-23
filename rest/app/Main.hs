@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Web.Spock (spock, runSpock, SpockM, SpockAction, get, post, json, text)
-import Web.Spock.Config (SpockCfg, PoolOrConn(PCNoDatabase), defaultSpockCfg)
-
-import Data.Aeson (object, ToJSON, FromJSON, (.=), toJSON)
+import qualified Web.Spock as Spock
+import Web.Spock (get, post, json, text)
+import qualified Web.Spock.Config as Config
+import Data.Aeson (ToJSON, FromJSON, (.=), toJSON)
 import Data.Monoid ((<>))
 import Data.Text (Text, pack)
 import GHC.Generics (Generic)
@@ -19,14 +19,14 @@ newtype Person = Person
 instance ToJSON Person
 instance FromJSON Person
 
-type Api = SpockM () () () ()
+type Api = Spock.SpockM () () () ()
 
-type ApiAction a = SpockAction () () () a
+type ApiAction a = Spock.SpockAction () () () a
 
 main :: IO ()
 main = do
-  spockCfg <- defaultSpockCfg () PCNoDatabase ()
-  runSpock 8080 (spock spockCfg app)
+  spockCfg <- Config.defaultSpockCfg () Config.PCNoDatabase ()
+  Spock.runSpock 8080 (Spock.spock spockCfg app)
 
 app :: Api
 app = get "person" $ json Person { name = "祝園アカネ" }
