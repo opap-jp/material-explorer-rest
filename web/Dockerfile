@@ -19,3 +19,5 @@ COPY conf/default.conf /etc/nginx/conf.d
 
 # ポート開放
 EXPOSE 80
+
+CMD "nginx"
