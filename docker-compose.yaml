@@ -1,8 +1,11 @@
 version: "2"
 services:
   # フロントエンド
-  # web:
-
+  web:
+    command: ["nginx", "-g", "daemon off;"]
+    build: web
+    ports:
+    - "80:80"
   # REST サーバー（開発用）を起動します
   rest:
     command: "stack exec rest"
@@ -14,8 +17,8 @@ services:
   # データベース
   db:
     image: mongo:3.4.9
-    ports:
-    - "27017:27017"
+    # ports:
+    # - "27017:27017"
   # データベース（永続化用ボリューム）
   # data:
   #   image: mongo:3.4.9
