@@ -9,6 +9,9 @@ RUN apt-get update \
     && apt-get install -y nodejs
 
 # 設定ファイルを配置します
+COPY conf/nginx.conf /etc/nginx
+COPY conf/mime.types /etc/nginx
+COPY conf/default.conf /etc/nginx/conf.d
 
 # アプリケーションのソースをコピーし、ビルドします
 
