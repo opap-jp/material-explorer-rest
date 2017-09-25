@@ -28,5 +28,15 @@ main = do
   spockCfg <- Config.defaultSpockCfg () Config.PCNoDatabase ()
   Spock.runSpock 8080 (Spock.spock spockCfg app)
 
+addCors :: Spock.ActionCtxT b (Spock.WebStateM conn sess st) b
+addCors = do
+  context <- Spock.getContext
+  Spock.setHeader "Access-Control-Allow-Origin" "*"
+  pure context
+
 app :: Api
-app = get "person" $ json Person { name = "祝園アカネ" }
+app = Spock.prehook addCors routes
+
+routes :: Api
+routes =
+  get "person" $ json Person { name = "祝園アカネ" }

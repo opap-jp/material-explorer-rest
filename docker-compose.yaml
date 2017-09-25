@@ -13,11 +13,7 @@ services:
     - "8080:8080"
     # stdin_open: true
     # tty: true
-  # データベース
+  # データベース: 27017
   db:
     image: mongo:3.4.9
-    # ports:
-    # - "27017:27017"
-  # データベース（永続化用ボリューム）
-  # data:
-  #   image: mongo:3.4.9
+
