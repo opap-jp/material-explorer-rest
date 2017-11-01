@@ -1,24 +1,3 @@
-# compiled output
-/dist
-/tmp
-/out-tsc
-
-# dependencies
-/node_modules
-
-# misc
-/.sass-cache
-/connect.lock
-/coverage
-/libpeerconnection.log
-npm-debug.log
-testem.log
-/typings
-
-# Haskell
-.stack-work
-*.cabal
-
 # System Files
 .DS_Store
 Thumbs.db

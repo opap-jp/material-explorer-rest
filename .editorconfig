@@ -15,6 +15,11 @@ trim_trailing_whitespace = true
 max_line_length = off
 trim_trailing_whitespace = false
 
+[*.ts]
+indent_size = 4
+
+[*.tsx]
+indent_size = 4
+
 [*.hs]
-indent_style = space
 indent_size = 2
