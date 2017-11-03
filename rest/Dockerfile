@@ -21,7 +21,7 @@ RUN mkdir /root/material-explorer
 WORKDIR /tmp/material-explorer
 COPY build.sbt .
 COPY project project
-RUN sbt ivySbt
+RUN sbt update
 COPY . .
 RUN sbt assembly
 RUN mv target/material-explorer.jar /root/material-explorer/
