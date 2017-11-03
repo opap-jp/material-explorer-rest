@@ -7,12 +7,10 @@ services:
     - "80:80"
   # REST サーバー（開発用）を起動します
   rest:
-    command: "stack exec rest"
+    command: "java -jar material-explorer.jar server"
     build: rest
     ports:
     - "8080:8080"
-    # stdin_open: true
-    # tty: true
   # データベース: 27017
   db:
     image: mongo:3.4.9

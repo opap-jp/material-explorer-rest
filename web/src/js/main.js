@@ -6,4 +6,4 @@ $(function() {
             let message = element.attr("data-text").replace("${name}", data.name);
             element.text(message);
         });
-})
+});

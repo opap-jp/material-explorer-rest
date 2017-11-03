@@ -1,3 +1,5 @@
-# Haskell
-.stack-work
-*.cabal
+# Scala
+.idea
+project/target
+project/project
+target
