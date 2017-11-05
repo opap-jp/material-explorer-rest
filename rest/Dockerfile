@@ -21,9 +21,9 @@ RUN mkdir /root/material-explorer
 WORKDIR /tmp/material-explorer
 COPY build.sbt .
 COPY project project
-RUN sbt update
+RUN sbt clean && sbt -Dpackaging.type=jar update
 COPY . .
-RUN sbt assembly
+RUN sbt -Dpackaging.type=jar assembly
 RUN mv target/material-explorer.jar /root/material-explorer/
 WORKDIR /root/material-explorer/
 

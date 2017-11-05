@@ -3,11 +3,45 @@
   <head>
     <meta charset="UTF-8">
     <title>素材管理システム（仮） - OPAP-JP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
     <link rel="stylesheet" href="css/common.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
     <script src="js/main.js"></script>
   </head>
   <body>
-    <p id="message" data-text="こんにちは！　${name}です！"></p>
+    <div class="row">
+      <nav>
+        <div class="nav-wrapper">
+          <div class="col s12">
+            <a href="/" class="brand-logo">Material Explorer</a>
+            <ul id="nav-mobile" class="right hide-on-med-and-down">
+              <li class="active"><a href="#">プロジェクト一覧</a></li>
+              <li><a href="#">すべての素材</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="row">
+      <div class="col s3">
+
+      </div>
+      <div class="col s9">
+        <p id="message" data-text="こんにちは！　${name}です！"></p>
+        <h3>プロジェクト一覧</h3>
+        <table class="bordered highlight">
+          <thead>
+            <tr>
+              <th>プロジェクト名</th>
+              <th>URL</th>
+              <th>最後の活動</th>
+            </tr>
+          </thead>
+          <tbody id="projects">
+          </tbody>
+        </table>
+      </div>
+    </div>
   </body>
 </html>

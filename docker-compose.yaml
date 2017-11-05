@@ -5,13 +5,10 @@ services:
     build: web
     ports:
     - "80:80"
-  # REST サーバー（開発用）を起動します
-  rest:
-    command: "java -jar material-explorer.jar server"
-    build: rest
-    ports:
-    - "8080:8080"
+    volumes:
+    - ./web/src:/usr/share/nginx/html
   # データベース: 27017
   db:
     image: mongo:3.4.9
-
+    ports:
+    - 27017:27017
