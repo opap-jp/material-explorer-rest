@@ -14,6 +14,7 @@ COPY conf/default.conf /etc/nginx/conf.d
 
 # アプリケーションのソースをコピーし、ビルドします
 COPY src /usr/share/nginx/html
+RUN perl -i -ple 's!http://localhost:8080!$ENV{REST_HOST}/!;' /usr/share/nginx/html/js/rest-client.js
 
 # アセットを配置します
 

@@ -5,6 +5,8 @@ services:
     build: web
     ports:
     - "80:80"
+    environment:
+    - REST_HOST=https://api.materials.opap,jp
   # REST サーバー（開発用）を起動します
   rest:
     command: "java -jar material-explorer.jar server"
@@ -14,4 +16,3 @@ services:
   # データベース: 27017
   db:
     image: mongo:3.4.9
-

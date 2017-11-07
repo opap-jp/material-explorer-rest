@@ -21,7 +21,7 @@ class MongoProjectDao(val mongo: MongoDatabase) {
     val key = new BasicDBObject("_id", project.getHttpUrlToRepo)
     val options = new UpdateOptions().upsert(true)
 
-    this.projects.updateOne(key, document, options)
+    this.projects.replaceOne(key, document, options)
   }
 
   def findProjects(): Seq[Project] = this.projects.find()

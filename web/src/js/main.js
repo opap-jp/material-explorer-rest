@@ -1,19 +1,14 @@
 $(function() {
-    fetch("//localhost:8080/person")
-        .then(response => response.json())
-        .then(data => {
-            let element = $("#message");
-            let message = element.attr("data-text").replace("${name}", data.name);
-            element.text(message);
-        })
-        .catch();
+    let rest = MaterialExplorer.resources;
 
-    fetch("//localhost:8080/repositories")
+    rest.repositories()
         .then(reponse => reponse.json())
         .then(data => {
             let elements = data.items
                 .map(item => {
-                    let html = "<tr><td>" + item.name + "</td><td>" + item.id + "</td><td>" + item.lastActivityAt + "</td></tr>";
+                    var sub = (s, l) => item.lastActivityAt.substr(s, l);
+                    var date = sub(0, 4) + "/" + sub(5, 2) + "/" + sub(8, 2) + " " + sub(11, 8);
+                    let html = "<tr><td>" + item.name + "</td><td>" + item.id + "</td><td>" + date + "</td></tr>";
                     return html;
                 }).join("");
 
