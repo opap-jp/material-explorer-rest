@@ -1,0 +1,48 @@
+{
+  "name": "material-explorer",
+  "version": "0.1.0",
+  "description": "material-explorer",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/opap-jp/material-explorer.git"
+  },
+  "dependencies": {
+    "@types/jquery": "^3.2.1",
+    "jquery": "^3.2.1",
+    "js-joda": "^1.5.2",
+    "typescript-optional": "^1.2.1"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.2.1",
+    "css-loader": "^0.28.4",
+    "gulp": "^3.9.1",
+    "gulp-base64": "^0.1.3",
+    "gulp-base64-webfont-css": "0.0.1",
+    "gulp-concat-css": "^2.3.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-webserver": "^0.9.1",
+    "node-sass": "^4.5.3",
+    "rimraf": "^2.6.2",
+    "run-sequence": "^2.0.0",
+    "sass-loader": "^6.0.6",
+    "source-map-loader": "^0.2.1",
+    "style-loader": "^0.18.2",
+    "typescript": "^2.4.1",
+    "webpack": "^3.0.0"
+  },
+  "scripts": {
+    "build": "npm run clean && gulp build",
+    "clean": "rimraf dist/*",
+    "production": "webpack -p",
+    "develop": "webpack -d",
+    "webpack": "webpack",
+    "watch": "webpack -d --watch --progress",
+    "verbose": "webpack --display-error-details",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "gulp start",
+    "gulp": "gulp"
+  },
+  "author": "OPAP-JP",
+  "license": "MIT"
+}

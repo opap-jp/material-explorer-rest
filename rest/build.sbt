@@ -2,6 +2,7 @@ name := "material-explorer"
 organization := "jp.opap"
 version := "0.0.1"
 scalaVersion := "2.12.4"
+javacOptions ++= Seq("-encoding", "UTF-8")
 
 val workaround: Unit = {
   sys.props += "packaging.type" -> "jar"

@@ -1,7 +1,13 @@
-# 開発用 Docker 構成
-# db のみコンテナとして起動します。web, rest は npm と JRE で起動してください。
+# デバッグ用 Docker 構成（REST なし）
 version: "2"
 services:
+  # フロントエンド
+  web:
+    build: web
+    ports:
+    - "80:80"
+    args:
+      build_mode: "debug"
   # データベース: 27017
   db:
     image: mongo:3.4.9

@@ -2,17 +2,20 @@ version: "2"
 services:
   # フロントエンド
   web:
-    build: web
+    build:
+      context: web
+      args:
+        service_host: "https://api.materials.opap.jp"
     ports:
     - "80:80"
-    environment:
-    - REST_HOST=https://api.materials.opap,jp
   # REST サーバー（開発用）を起動します
   rest:
-    command: "java -jar material-explorer.jar server"
+    command: "java -jar material-explorer.jar server config.debug.yaml"
     build: rest
     ports:
     - "8080:8080"
   # データベース: 27017
   db:
     image: mongo:3.4.9
+    ports:
+    - 27017:27017

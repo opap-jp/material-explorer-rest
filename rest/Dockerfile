@@ -25,6 +25,9 @@ RUN sbt clean && sbt -Dpackaging.type=jar update
 COPY . .
 RUN sbt -Dpackaging.type=jar assembly
 RUN mv target/material-explorer.jar /root/material-explorer/
+
+# TODO: アプリケーション設定ファイルは、ARG で指定する
+COPY ./config.debug.yaml /root/material-explorer/
 WORKDIR /root/material-explorer/
 
 # ポート開放
