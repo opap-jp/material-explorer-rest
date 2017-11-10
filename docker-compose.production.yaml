@@ -1,6 +1,7 @@
+# プロダクション用 Docker 構成
 version: "2"
 services:
-  # フロントエンド
+  # フロントエンド ウェブサーバー（開発用）
   web:
     build:
       context: web
@@ -8,14 +9,16 @@ services:
         service_host: "https://api.materials.opap.jp"
     ports:
     - "80:80"
-  # REST サーバー（開発用）を起動します
+  # REST サーバー
   rest:
     command: "java -jar material-explorer.jar server config.debug.yaml"
     build: rest
     ports:
     - "8080:8080"
-  # データベース: 27017
+  # データベース
   db:
     image: mongo:3.4.9
     ports:
     - 27017:27017
+    volumes:
+    - /tmp/material-explorer/db:/data/db

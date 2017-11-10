@@ -1,1 +1,2 @@
+# REST サーバーをローカル JVM で起動する場合の設定です
 dbHost: localhost

@@ -1,14 +1,21 @@
-# デバッグ用 Docker 構成（REST なし）
+# デバッグ用 Docker 構成
 version: "2"
 services:
-  # フロントエンド
+  # フロントエンド ウェブサーバー（開発用）
   web:
-    build: web
+    build:
+      context: web
+      args:
+        service_host: "http://localhost:8080"
     ports:
     - "80:80"
-    args:
-      build_mode: "debug"
-  # データベース: 27017
+  # REST サーバー（開発用）
+  rest:
+    command: "java -jar material-explorer.jar server config.debug.yaml"
+    build: rest
+    ports:
+    - "8080:8080"
+  # データベース
   db:
     image: mongo:3.4.9
     ports:

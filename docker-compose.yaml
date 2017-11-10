@@ -2,7 +2,7 @@
 # db のみコンテナとして起動します。web, rest は npm と JRE で起動してください。
 version: "2"
 services:
-  # データベース: 27017
+  # データベース
   db:
     image: mongo:3.4.9
     ports:
