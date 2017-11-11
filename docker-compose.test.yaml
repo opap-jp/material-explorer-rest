@@ -1,4 +1,4 @@
-# プロダクション用 Docker 構成
+# テスト用 Docker 構成
 version: "2"
 services:
   # フロントエンド ウェブサーバー（開発用）
@@ -6,12 +6,12 @@ services:
     build:
       context: web
       args:
-        service_host: "https://api.materials.opap.jp"
+        service_host: "http://localhost:8080"
     ports:
     - "80:80"
-  # REST サーバー
+  # REST サーバー（開発用）
   rest:
-    command: "java -jar material-explorer.jar server config.debug.yaml"
+    command: "java -jar material-explorer.jar server config.test.yaml"
     build: rest
     ports:
     - "8080:8080"
@@ -21,4 +21,6 @@ services:
     ports:
     - 27017:27017
     volumes:
-    - /tmp/material-explorer/db:/data/db
+    - data-volume:/data/db
+volumes:
+  data-volume:
