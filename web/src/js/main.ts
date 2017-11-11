@@ -4,6 +4,8 @@ import { MaterialExplorer } from "./rest-client";
 $(function() {
     let rest = MaterialExplorer.resources;
 
+    let table = $("#projects");
+    let loading = $("#loader");
     rest.repositories()
         .then(data => {
             let elements = data.items
@@ -13,8 +15,12 @@ $(function() {
                     let html = "<tr><td>" + item.name + "</td><td>" + item.id + "</td><td>" + date + "</td></tr>";
                     return html;
                 }).join("");
-
-            $("#projects").append(elements);
+            loading.hide();
+            table.find("tbody").append(elements);
         })
-        .catch();
+        .catch(error => {
+            table.hide();
+            loading.hide();
+            $("#error-message").show()
+        });
 });

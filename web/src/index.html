@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.css">
     <link rel="stylesheet" href="css/common.css">
     <script src="js/vendor.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.js"></script>
     <script src="js/main.js"></script>
   </head>
   <body>
@@ -18,7 +18,7 @@
     </nav>
     <div class="ui main container">
       <h3>プロジェクト一覧</h3>
-      <table class="ui single line table">
+      <table id="projects" class="ui single line table">
         <thead>
           <tr>
             <th>プロジェクト名</th>
@@ -26,9 +26,15 @@
             <th>最後の活動</th>
           </tr>
         </thead>
-        <tbody id="projects">
+        <tbody>
         </tbody>
       </table>
+      <div id="error-message" class="ui negative message" style="display: none">
+        <p>データを読み込めませんでした。</p>
+      </div>
+      <div id="loader" style="padding-top: 8em">
+        <div class="ui active centered inline loader"></div>
+      </div>
     </div>
   </body>
 </html>

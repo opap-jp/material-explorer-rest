@@ -18,10 +18,13 @@ module.exports = {
     },
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({ name: "vendor" /*, filename: "vendor.bundle.js"*/ }),
-        new webpack.optimize.CommonsChunkPlugin({ name: "common", chunks: ["main"] }),
+        // new webpack.optimize.CommonsChunkPlugin({ name: "commons", names: ["main"], filename: "js/commons.js" }),
         new webpack.DefinePlugin({
             SERVICE_HOST: JSON.stringify(serviceHost)
-        })
+        }),
+        // new webpack.ProvidePlugin({
+        //     "window.jQuery": "jquery"
+        // })
     ],
     devtool: "source-map",
     resolve: {
@@ -45,10 +48,13 @@ module.exports = {
             {
                 test: /\.scss$/,
                 loaders: ["style-loader", "css-loader", "sass-loader"]
+            },
+
+            {
+                test: require.resolve("jquery"),
+                use: [{ loader: "expose-loader", options: "jQuery" }]
             }
         ],
-        loaders: [
-        ]
     },
     stats: { errorDetails: true }
 };

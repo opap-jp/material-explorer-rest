@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@types/jquery": "^3.2.1",
+    "expose-loader": "^0.7.3",
     "jquery": "^3.2.1",
     "js-joda": "^1.5.2",
     "typescript-optional": "^1.2.1"
