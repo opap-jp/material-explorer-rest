@@ -102,7 +102,7 @@ Scala プロジェクトを **sbt** でビルドし、実行可能な `*.jar` �
   ![Edit Configuraion](docs/images/readme-intellij-02.png)
 1. "Name" に適当な名称を入力します。<br>
   "Main class" で `jp.opap.material.MaterialExplorer` を選択します。<br>
-  "Program arguments"に `server config.debug.yaml` と入力します。<br>
+  "Program arguments"に `server config.develop.yaml` と入力します。<br>
   "Use classpath module" で "rest" を選択します。<br>
   ![Edit Configuraion](docs/images/readme-intellij-03.png)
 
