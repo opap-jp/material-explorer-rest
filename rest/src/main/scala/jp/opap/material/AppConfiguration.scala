@@ -1,16 +1,16 @@
 package jp.opap.material
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import io.dropwizard.Configuration
 import org.hibernate.validator.constraints.NotEmpty
 
+import scala.beans.BeanProperty
+
 class AppConfiguration extends Configuration {
+  @BeanProperty
   @NotEmpty
   var dbHost: String = ""
 
-  @JsonProperty
-  def getDbHost: String = this.dbHost
-
-  @JsonProperty
-  def setDbHost(value: String): Unit = this.dbHost = value
+  @BeanProperty
+  @NotEmpty
+  var projects: String = ""
 }

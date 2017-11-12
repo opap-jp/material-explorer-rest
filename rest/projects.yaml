@@ -1,0 +1,9 @@
+projects:
+  -
+    protocol: gitlab
+    name: kosys/kosys-ep03
+    title: "こうしす！#3"
+  -
+    protocol: gitlab
+    name: kosys/kosys-ep02
+    title: "こうしす！#2"

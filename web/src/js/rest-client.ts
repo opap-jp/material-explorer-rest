@@ -23,5 +23,6 @@ export class MaterialExplorer {
 export interface Repository {
     id: string;
     name: string;
+    title: string;
     lastActivityAt: string;
 }

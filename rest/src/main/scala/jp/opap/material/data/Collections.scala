@@ -1,7 +1,5 @@
 package jp.opap.material.data
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 import scala.collection.JavaConverters._
 
 object Collections {

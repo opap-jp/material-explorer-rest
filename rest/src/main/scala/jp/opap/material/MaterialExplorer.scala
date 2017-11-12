@@ -49,10 +49,10 @@ object MaterialExplorer extends Application[AppConfiguration] {
     servlets.addFilter(classOf[PrettyPrintFilter].getSimpleName, PrettyPrintFilter.SINGLETON)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
-    this.updateProjectData(projectCollectionFacade)
+    this.updateProjectData(projectCollectionFacade, configuration)
   }
 
-  def updateProjectData(facade: ProjectCollectionFacade): Unit = {
-    facade.updateProjects(Seq(("https://gitlab.com/", "kosys")))
+  def updateProjectData(facade: ProjectCollectionFacade, configuration: AppConfiguration): Unit = {
+    facade.updateProjects(Seq(("https://gitlab.com/", "kosys")), configuration)
   }
 }
