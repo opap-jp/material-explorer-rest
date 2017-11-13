@@ -1,2 +1,3 @@
 # REST サーバーを Docker コンテナとして起動する場合の設定です
 dbHost: db
+projects: "./projects.yaml"

@@ -22,13 +22,18 @@ WORKDIR /tmp/material-explorer
 COPY build.sbt .
 COPY project project
 RUN sbt clean && sbt -Dpackaging.type=jar update
-COPY . .
+
+# ビルド
+COPY ./project ./project
+COPY ./src ./src
 RUN sbt -Dpackaging.type=jar assembly
 RUN mv target/material-explorer.jar /root/material-explorer/
 
-# TODO: アプリケーション設定ファイルは、ARG で指定する
-COPY ./config.debug.yaml /root/material-explorer/
 WORKDIR /root/material-explorer/
 
-# ポート開放
+# TODO: アプリケーション設定ファイルは、ARG で指定する
+COPY ./config.test.yaml .
+COPY ./projects.yaml .
+
+# ポート公開
 EXPOSE 8080
