@@ -10,7 +10,7 @@ import jp.opap.material.model.Project
 import org.bson.Document
 
 class MongoProjectDao(val mongo: MongoDatabase) {
-  val projects: MongoCollection[Document]  = this.mongo.getCollection("projects")
+  val collection: MongoCollection[Document]  = this.mongo.getCollection("projects")
 
   def updateProject(project: Project): Unit = {
     val document: Document =  new Document()
@@ -20,13 +20,14 @@ class MongoProjectDao(val mongo: MongoDatabase) {
     val key = new BasicDBObject("_id", project.id)
     val options = new UpdateOptions().upsert(true)
 
-    this.projects.replaceOne(key, document, options)
+    this.collection.replaceOne(key, document, options)
   }
 
-  def findProjects(): Seq[Project] = this.projects.find()
+  def findProjects(): Seq[Project] = this.collection
+    .find()
     .map[Option[Project]](d => {
       try {
-        val record = Project(d.getString("_id"), d.getString("name"), d.getString("title"), LocalDateTime.parse(d.getString("last_modified")))
+        val record = Project(d.getString("_id"), d.getString("name"), d.getString("title"), LocalDateTime.parse(d.getString("last_modified")), "")
         Option(record)
       } catch {
         case _: Throwable => Option.empty
@@ -37,6 +38,6 @@ class MongoProjectDao(val mongo: MongoDatabase) {
 
   def removeProjectById(id: String): Unit = {
     val key = new BasicDBObject("_id", id)
-    this.projects.deleteOne(key)
+    this.collection.deleteOne(key)
   }
 }

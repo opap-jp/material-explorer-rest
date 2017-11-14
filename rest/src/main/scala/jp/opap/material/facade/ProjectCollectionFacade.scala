@@ -4,17 +4,15 @@ import java.io.File
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import jp.opap.material.dao.MongoProjectDao
-import jp.opap.material.data.Formats.Dates
+import jp.opap.material.dao.{MongoItemDao, MongoProjectDao}
 import jp.opap.material.model.Project
 import jp.opap.material.{AppConfiguration, ProjectConfig, ProjectInfo}
-import org.gitlab4j.api.GitLabApi
-import org.gitlab4j.api.GitLabApi.ApiVersion
-import org.gitlab4j.api.models.{Project => GitLabProject}
 
 import scala.collection.JavaConverters._
 
-class ProjectCollectionFacade(val projectDao: MongoProjectDao) {
+class ProjectCollectionFacade(val projectDao: MongoProjectDao, val itemDao: MongoItemDao) {
+  val loaders: Seq[ProjectLoader] = Seq(new GitLabProjectLoader())
+
   def updateProjects(targets1: Seq[(String, String)], configuration: AppConfiguration): Unit = {
     def loadProjectConfig(): ProjectConfig = {
       val mapper = new ObjectMapper(new YAMLFactory())
@@ -25,22 +23,10 @@ class ProjectCollectionFacade(val projectDao: MongoProjectDao) {
       }
     }
 
-    def loadProject(info: ProjectInfo, store: Map[String, Project]): Option[Project] = {
-      if (info.protocol.toLowerCase() == "gitlab") {
-        val gitLab = new GitLabApi(ApiVersion.V4, "https://gitlab.com/", null: String)
-        val projectApi = gitLab.getProjectApi
-        val response = projectApi.getProject(info.namespace, info.projectName)
-        val isModified = store.get(info.id)
-          .forall(p => p.lastActivityAt != response.getLastActivityAt.toLocal)
-        if (isModified) {
-          Option(Projects.fromGitLab(info, response))
-        } else {
-          Option.empty
-        }
-      } else {
-        // TODO: エラーを出力する
-        Option.empty
-      }
+    def loadProject(info: ProjectInfo, store: Map[String, Project]): Option[DeferredProject] = {
+      this.loaders.find(loader => loader.shouldDispatch(info.protocol))
+        .map(loader => loader.loadByProjectInfo(info, store))
+        .filter(project => project.isModified)
     }
 
     // 取得を試みるプロジェクトのリスト
@@ -51,20 +37,26 @@ class ProjectCollectionFacade(val projectDao: MongoProjectDao) {
       .map(p => p.id -> p)
       .toMap
 
-    // 変更されたプロジェクトのみ取得し、更新します
-    targets.par
+    // 変更されたプロジェクトのみ取得します
+    val deferredProjects = targets.view.par
       .map(info => loadProject(info, storedProjects))
       .flatMap(p => p.iterator)
+
+    // 変更されたプロジェクトを更新します
+    deferredProjects
+      .map(_.project)
       .foreach(projectDao.updateProject)
 
-    // 参照されなくなったプロジェクトを削除します
-    storedProjects.keySet.diff(targets.map(info => info.id).toSet)
-        .foreach(projectDao.removeProjectById)
-  }
+    // 変更されたプロジェクトのファイルを取得して保存します
+    deferredProjects
+      .map(_.items)
+      .flatMap(_.iterator)
+      .foreach(itemDao.update)
 
-  object Projects {
-    def fromGitLab(info: ProjectInfo, item: GitLabProject): Project = {
-      Project(info.id, info.name, info.title, item.getLastActivityAt.toLocal)
-    }
+    // 参照されなくなったプロジェクトを削除します
+    storedProjects.keySet
+      .par
+      .diff(targets.map(info => info.id).toSet)
+      .foreach(projectDao.removeProjectById)
   }
 }

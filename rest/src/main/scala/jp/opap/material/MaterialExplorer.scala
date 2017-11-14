@@ -7,7 +7,7 @@ import com.mongodb.MongoClient
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
-import jp.opap.material.dao.MongoProjectDao
+import jp.opap.material.dao.{MongoItemDao, MongoProjectDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.ProjectCollectionFacade
@@ -30,12 +30,12 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val db = dbClient.getDatabase("material_explorer")
 
     val projectDao = new MongoProjectDao(db)
-    val projectCollectionFacade = new ProjectCollectionFacade(projectDao)
-    val rootResource = new RootResource(projectDao)
+    val itemDao = new MongoItemDao(db)
+    val projectCollectionFacade = new ProjectCollectionFacade(projectDao, itemDao)
+    val rootResource = new RootResource(projectDao, itemDao)
 
     val server = environment.jersey()
     server.register(rootResource)
-    server.register(PrettyPrintFilter.SINGLETON)
 
     val servlets = environment.servlets()
 

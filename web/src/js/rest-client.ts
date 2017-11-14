@@ -16,6 +16,9 @@ export class MaterialExplorer {
             repositories: () => request("/repositories")
                 .then(filterOk)
                 .then(r => r.json()) as Promise<{ items: Repository[] }>,
+            items: () => request("/items")
+                .then(filterOk)
+                .then(r => r.json()) as Promise<{ items: RepositoryItem[] }>,
         };
     })();
 }
@@ -25,4 +28,9 @@ export interface Repository {
     name: string;
     title: string;
     lastActivityAt: string;
+}
+
+export interface RepositoryItem {
+    projectId: string;
+    path: string;
 }
