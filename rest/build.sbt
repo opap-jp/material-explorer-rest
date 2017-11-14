@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
   ),
   "org.mongodb" % "mongo-java-driver" % "3.5.0",
   "io.dropwizard" % "dropwizard-core" % "1.2.0",
+  "org.glassfish.jersey.media" % "jersey-media-sse" % "2.25.1",
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)

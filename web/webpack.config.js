@@ -11,6 +11,7 @@ module.exports = {
             "jquery"
         ],
         main: ["./src/js/main.ts"],
+        progress: ["./src/js/progress.ts"],
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -52,7 +53,10 @@ module.exports = {
 
             {
                 test: require.resolve("jquery"),
-                use: [{ loader: "expose-loader", options: "jQuery" }]
+                use: [
+                    { loader: "expose-loader", options: "jQuery" },
+                    { loader: "expose-loader", options: "$" }
+                ]
             }
         ],
     },

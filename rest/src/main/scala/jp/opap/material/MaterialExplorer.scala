@@ -10,7 +10,7 @@ import io.dropwizard.setup.{Bootstrap, Environment}
 import jp.opap.material.dao.{MongoItemDao, MongoProjectDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
-import jp.opap.material.facade.ProjectCollectionFacade
+import jp.opap.material.facade.{ProjectCollectionFacade, ProjectDataEventEmitter}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
 
@@ -29,10 +29,12 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val dbClient = new MongoClient(configuration.dbHost)
     val db = dbClient.getDatabase("material_explorer")
 
+    val projectEventEmitter = new ProjectDataEventEmitter()
+
     val projectDao = new MongoProjectDao(db)
     val itemDao = new MongoItemDao(db)
-    val projectCollectionFacade = new ProjectCollectionFacade(projectDao, itemDao)
-    val rootResource = new RootResource(projectDao, itemDao)
+    val projectCollectionFacade = new ProjectCollectionFacade(projectDao, itemDao, projectEventEmitter)
+    val rootResource = new RootResource(projectDao, itemDao, projectEventEmitter)
 
     val server = environment.jersey()
     server.register(rootResource)
@@ -49,7 +51,11 @@ object MaterialExplorer extends Application[AppConfiguration] {
     servlets.addFilter(classOf[PrettyPrintFilter].getSimpleName, PrettyPrintFilter.SINGLETON)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
-    this.updateProjectData(projectCollectionFacade, configuration)
+    new Thread() {
+      override def run(): Unit = {
+        MaterialExplorer.this.updateProjectData(projectCollectionFacade, configuration)
+      }
+    }.start()
   }
 
   def updateProjectData(facade: ProjectCollectionFacade, configuration: AppConfiguration): Unit = {

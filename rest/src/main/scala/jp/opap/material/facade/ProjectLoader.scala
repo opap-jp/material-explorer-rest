@@ -1,16 +1,13 @@
 package jp.opap.material.facade
 
+import java.util.stream.IntStream
+
 import jp.opap.material.ProjectInfo
-import jp.opap.material.model.{Item, Project}
+import jp.opap.material.data.Formats.Dates
+import jp.opap.material.model.{Blob, Item, ItemType, Project}
 import org.gitlab4j.api.GitLabApi
 import org.gitlab4j.api.GitLabApi.ApiVersion
-import jp.opap.material.data.Collections.Iterables
-import jp.opap.material.data.Formats.Dates
-import org.gitlab4j.api.models.{Commit => GitLabCommit, TreeItem}
-
-
-import scala.collection.JavaConverters._
-import scala.collection.parallel.ParIterable
+import org.gitlab4j.api.models.{TreeItem, Commit => GitLabCommit}
 
 trait ProjectLoader {
   // def loadByProjectInfo(info: ProjectInfo): (Project, Iterable[Item])
@@ -29,7 +26,7 @@ trait DeferredProject {
 
 trait ItemIterable {
   def count: Int
-  def iterator: ParIterable[Item]
+  def iterator: java.util.stream.Stream[Item]
 }
 
 class GitLabProjectLoader extends ProjectLoader {
@@ -45,7 +42,6 @@ class GitLabProjectLoader extends ProjectLoader {
       lazy val head: GitLabCommit = gitLab.getCommitsApi.getCommit(response.getId, response.getDefaultBranch)
 
       override def project: Project = {
-        // val head = gitLab.getCommitsApi.getCommit(response.getId, response.getDefaultBranch)
         Project(info.id, info.name, info.title, response.getLastActivityAt.toLocal, this.head.getId)
       }
 
@@ -64,10 +60,8 @@ class GitLabProjectLoader extends ProjectLoader {
           new ItemIterable {
             override def count: Int = diffs.size()
 
-            override def iterator: ParIterable[Item] = diffs.toIterable
-              .view
-              .par
-              .map(diff => Item(info.id, diff.getNewPath))
+            override def iterator: java.util.stream.Stream[Item] = diffs.parallelStream()
+              .map(diff => Item(info.id, Blob, diff.getNewPath))
           }
         }
 
@@ -77,14 +71,13 @@ class GitLabProjectLoader extends ProjectLoader {
           new ItemIterable {
             override def count: Int = pager.getTotalItems
 
-            override def iterator: ParIterable[Item] = {
-              def itemOf(treeItem: TreeItem): Item = Item(info.id, treeItem.getPath)
+            override def iterator: java.util.stream.Stream[Item] = {
+              def itemOf(treeItem: TreeItem): Item = Item(info.id, ItemType.valueOf(treeItem.getType.toString), treeItem.getPath)
 
-              Iterable
-                .range(1, pager.getTotalPages + 1)
-                .view
-                .par
-                .flatMap(page => pager.page(page).asScala)
+              IntStream.range(1, pager.getTotalPages + 1)
+                .parallel()
+                .mapToObj(i => Int.box(i))
+                .flatMap(page => pager.page(page).stream())
                 .map(itemOf)
             }
           }
