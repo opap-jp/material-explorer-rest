@@ -13,4 +13,8 @@ class AppConfiguration extends Configuration {
   @BeanProperty
   @NotEmpty
   var projects: String = ""
+
+  @BeanProperty
+  @NotEmpty
+  var repositoryStore: String = ""
 }

@@ -10,16 +10,11 @@ class ProjectConfig {
 
 class ProjectInfo {
   @BeanProperty
-  var protocol: String = ""
-
-  @BeanProperty
-  var name: String = ""
+  var id: String = ""
 
   @BeanProperty
   var title: String = ""
 
-  def id: String = this.protocol + ":" + this.name
-
-  def namespace: String = this.name.split("/")(0)
-  def projectName: String = this.name.split("/")(1)
+  @BeanProperty
+  var url: String = ""
 }

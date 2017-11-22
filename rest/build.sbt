@@ -9,6 +9,7 @@ val workaround: Unit = {
   ()
 }
 libraryDependencies ++= Seq(
+  "org.scala-lang" % "scala-reflect" % "2.12.4",
   "org.gitlab4j" % "gitlab4j-api" % "4.6.5" excludeAll(
     ExclusionRule(organization = "org.glassfish.jersey.inject"),
     ExclusionRule(organization = "org.glassfish.jersey.core"),
@@ -16,6 +17,8 @@ libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "3.5.0",
   "io.dropwizard" % "dropwizard-core" % "1.2.0",
   "org.glassfish.jersey.media" % "jersey-media-sse" % "2.25.1",
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.0.201710071750-r",
+  "net.coobird" % "thumbnailator" % "0.4.3",
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)

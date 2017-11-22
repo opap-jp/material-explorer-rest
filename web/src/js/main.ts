@@ -8,6 +8,22 @@ $(function() {
     let table = $("#projects");
     let itemTable = $("#project-items")
     let loading = $("#loader");
+
+    rest.images()
+        .then(data => {
+            let elements = data.items.map(item => {
+                let card = $('<div class="ui fluid card"></div>')
+                    .append('<div class="image"><img src="' + rest.thumbnail(item.thumbnail.fileId) + '"></div>')
+                    .append('<div class="content">'
+                        + '<a class="header">' + item.file.head.name + '</a>'
+                        + '<div class="meta"><span class="date">' + item.file.head.path + '</span></div>'
+                        + '</div>')
+                return $('<div class="column"></div>')
+                    .append(card);
+            });
+            $("#thumbnails").append(elements);
+        })
+
     Promise.all([rest.repositories(), rest.items()])
         .then(dataSet => {
             let repositories = dataSet[0].items;

@@ -1,5 +1,5 @@
 projects:
   -
-    protocol: gitlab
-    name: kosys/kosys-ep03
-    title: "こうしす！#3"
+    id: kosys-lite-ep01
+    title: "コウシス! LITE #1"
+    url: https://gitlab.com/kosys/kosys-lite-ep01.git

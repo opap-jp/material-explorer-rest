@@ -7,7 +7,7 @@ import com.mongodb.MongoClient
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
-import jp.opap.material.dao.{MongoItemDao, MongoProjectDao}
+import jp.opap.material.dao.{MongoComponentDao, MongoItemDao, MongoProjectDao, MongoThumbnailDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.{ProjectCollectionFacade, ProjectDataEventEmitter}
@@ -33,8 +33,13 @@ object MaterialExplorer extends Application[AppConfiguration] {
 
     val projectDao = new MongoProjectDao(db)
     val itemDao = new MongoItemDao(db)
-    val projectCollectionFacade = new ProjectCollectionFacade(projectDao, itemDao, projectEventEmitter)
-    val rootResource = new RootResource(projectDao, itemDao, projectEventEmitter)
+    val componentDao = new MongoComponentDao(db)
+    val thumbnailDao = new MongoThumbnailDao(db)
+    val projectCollectionFacade = new ProjectCollectionFacade(configuration, projectDao, componentDao, thumbnailDao, projectEventEmitter)
+
+    val rootResource = new RootResource(projectDao, itemDao, componentDao, thumbnailDao, projectEventEmitter)
+
+    val pattern = "\\.([a-zA-Z0-9]+)$".r
 
     val server = environment.jersey()
     server.register(rootResource)
@@ -59,6 +64,6 @@ object MaterialExplorer extends Application[AppConfiguration] {
   }
 
   def updateProjectData(facade: ProjectCollectionFacade, configuration: AppConfiguration): Unit = {
-    facade.updateProjects(Seq(("https://gitlab.com/", "kosys")), configuration)
+    facade.updateProjects(configuration)
   }
 }
