@@ -2,6 +2,7 @@
 dbHost: localhost
 projects: "./projects.yaml"
 repositoryStore: "temp/repositories"
+imageMagickHost: http://localhost:9090
 server:
   gzip:
     enabled: false

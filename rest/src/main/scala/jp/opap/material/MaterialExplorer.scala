@@ -40,7 +40,6 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val rootResource = new RootResource(projectDao, itemDao, componentDao, thumbnailDao, projectEventEmitter)
 
     val pattern = "\\.([a-zA-Z0-9]+)$".r
-
     val server = environment.jersey()
     server.register(rootResource)
 

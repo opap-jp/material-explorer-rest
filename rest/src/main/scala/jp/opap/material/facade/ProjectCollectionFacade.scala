@@ -15,7 +15,9 @@ import scala.collection.JavaConverters._
 class ProjectCollectionFacade(val configuration: AppConfiguration,
     val projectDao: MongoProjectDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
     val eventEmitter: ProjectDataEventEmitter) {
-  val converters: Seq[MediaConverter] = Seq(PngConverter)
+  val converters: Seq[MediaConverter] = Seq(
+      new ImageConverter(new RestResize(configuration.imageMagickHost))
+    )
 
   def updateProjects(configuration: AppConfiguration): Unit = {
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリのURLを取得する。
@@ -47,9 +49,9 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
       (component match {
         case _: DirectoryEntry =>  Option.empty
         case file: FileEntry => Option(file)
-      }).flatMap(leaf => {
-        this.converters.find(converter => converter.shouldDispatch(leaf))
-          .map(converter => converter.getThumbnail(leaf, getFile(leaf)))
+      }).flatMap(file => {
+        this.converters.find(converter => converter.shouldDispatch(file))
+          .map(converter => converter.convert(file, getFile(file)))
       }).foreach(thumb => this.thumbnailDao.insert(thumb))
     })
   }

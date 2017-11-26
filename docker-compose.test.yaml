@@ -8,7 +8,7 @@ services:
       args:
         service_host: "http://localhost:8080"
     ports:
-    - "80:80"
+    - 80:80
   # REST サーバー（開発用）
   rest:
     command: "java -jar material-explorer.jar server config.test.yaml"
@@ -22,5 +22,9 @@ services:
     - 27017:27017
     volumes:
     - data-volume:/data/db
+  # ImageMagick
+  im:
+    build:
+      context: im
 volumes:
   data-volume:

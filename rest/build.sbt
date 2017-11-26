@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "io.dropwizard" % "dropwizard-core" % "1.2.0",
   "org.glassfish.jersey.media" % "jersey-media-sse" % "2.25.1",
   "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.0.201710071750-r",
-  "net.coobird" % "thumbnailator" % "0.4.3",
+  "org.apache.httpcomponents" % "httpmime" % "4.5.3",
+  "org.apache.httpcomponents" % "fluent-hc" % "4.5.3",
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)

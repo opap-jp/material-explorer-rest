@@ -17,4 +17,8 @@ class AppConfiguration extends Configuration {
   @BeanProperty
   @NotEmpty
   var repositoryStore: String = ""
+
+  @BeanProperty
+  @NotEmpty
+  var imageMagickHost: String = ""
 }

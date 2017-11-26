@@ -1,7 +1,6 @@
 package jp.opap.material.resource
 
 import java.io.IOException
-import java.net.URLConnection
 import java.util.UUID
 import javax.ws.rs.core.{MediaType, Response}
 import javax.ws.rs.{GET, Path, PathParam, Produces}
@@ -44,13 +43,12 @@ class RootResource(val projectDao: MongoProjectDao, val itemDao: MongoItemDao, v
 
   @GET
   @Path("/thumbnail/{file_id}")
+  @Produces(Array("image/png"))
   def thumbnail(@PathParam("file_id") fileId: String): Response = {
     val id = UUID.fromString(fileId)
     try {
       val thumbnail = this.thumbnailDao.findById(id).get
-      val file = this.componentDao.findFileById(id).get
-      val contentType = Option(URLConnection.guessContentTypeFromName(file.name)).get
-      Response.ok(thumbnail.data, contentType)
+      Response.ok(thumbnail.data)
         .build()
     } catch {
       case e: NoSuchElementException => Response.status(404).build()
