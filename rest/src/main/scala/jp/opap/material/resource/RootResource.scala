@@ -15,14 +15,6 @@ import org.glassfish.jersey.media.sse.{EventOutput, OutboundEvent, SseFeature}
 class RootResource(val projectDao: MongoProjectDao, val itemDao: MongoItemDao, val componentDao: MongoComponentDao,
   val thumbnailDao: MongoThumbnailDao, val eventEmitter: ProjectDataEventEmitter) {
   @GET
-  @Path("/person")
-  @Produces(Array(MediaType.APPLICATION_JSON))
-  def person(): Response = {
-    val data: Map[String, _] = Map("name" -> "祝園アカネ")
-    Response.ok(data).build()
-  }
-
-  @GET
   @Path("/repositories")
   @Produces(Array(MediaType.APPLICATION_JSON))
   def repositories(): Response = {
