@@ -49,7 +49,7 @@ class RootResource(val projectDao: MongoProjectDao, val itemDao: MongoItemDao, v
     try {
       val thumbnail = this.thumbnailDao.findById(id).get
       val file = this.componentDao.findFileById(id).get
-      val contentType = Option(URLConnection.guessContentTypeFromName(file.head.name)).get
+      val contentType = Option(URLConnection.guessContentTypeFromName(file.name)).get
       Response.ok(thumbnail.data, contentType)
         .build()
     } catch {

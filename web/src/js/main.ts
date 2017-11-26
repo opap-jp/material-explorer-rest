@@ -15,8 +15,8 @@ $(function() {
                 let card = $('<div class="ui fluid card"></div>')
                     .append('<div class="image"><img src="' + rest.thumbnail(item.thumbnail.fileId) + '"></div>')
                     .append('<div class="content">'
-                        + '<a class="header">' + item.file.head.name + '</a>'
-                        + '<div class="meta"><span class="date">' + item.file.head.path + '</span></div>'
+                        + '<a class="header">' + item.file.name + '</a>'
+                        + '<div class="meta"><span class="date">' + item.file.path + '</span></div>'
                         + '</div>')
                 return $('<div class="column"></div>')
                     .append(card);

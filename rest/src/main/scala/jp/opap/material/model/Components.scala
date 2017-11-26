@@ -4,24 +4,32 @@ import java.util.UUID
 
 import scala.beans.BeanProperty
 
-object Components {
-  type FileElement = LeafElement[MetaHead, MetaFile]
-  type Component = ComponentElement[MetaHead, MetaFile]
+sealed trait IntermediateComponent {
+  val name: String
+  val path: String
 }
 
-sealed trait GenericComponent[H, L]
-case class Composite[H, L](head: H, children: Seq[GenericComponent[H, L]]) extends GenericComponent[H, L]
-case class Leaf[H, L](head: H, payload: L) extends GenericComponent[H, L]
+case class IntermediateDirectory(name: String, path: String, children: Seq[IntermediateComponent]) extends IntermediateComponent {
+}
 
-sealed trait ComponentElement[H, L]
-case class CompositeElement[H, L](@BeanProperty head: H) extends ComponentElement[H, L]
-case class LeafElement[H, L](@BeanProperty head: H, @BeanProperty payload: L) extends ComponentElement[H, L]
+case class IntermediateFile(name: String, path: String) extends IntermediateComponent {
+}
 
-case class IntermediateHead(name: String, path: String)
-case class IntermediateLeaf()
+sealed trait ComponentEntry {
+  val id: UUID
+  val repositoryId: String
+  val parentId: Option[UUID]
+  val name: String
+  val path: String
+}
 
-case class MetaHead(@BeanProperty id: UUID, @BeanProperty repositoryId: String, @BeanProperty parentId: Option[UUID], @BeanProperty name: String, @BeanProperty path: String)
-case class MetaFile()
+case class DirectoryEntry(@BeanProperty id: UUID, @BeanProperty repositoryId: String,
+  @BeanProperty parentId: Option[UUID], @BeanProperty name: String, @BeanProperty path: String) extends ComponentEntry {
+}
+
+case class FileEntry(@BeanProperty id: UUID, @BeanProperty repositoryId: String, @BeanProperty parentId: Option[UUID],
+  @BeanProperty name: String, @BeanProperty path: String) extends ComponentEntry {
+}
 
 trait IThumbnail {
   val fileId: UUID

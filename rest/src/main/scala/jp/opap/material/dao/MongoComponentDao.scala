@@ -6,9 +6,9 @@ import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
 import jp.opap.material.dao.MongoComponentDao.FileAndThumbnail
 import jp.opap.material.dao.MongoDao.Documents
-import jp.opap.material.model.Components.{Component, FileElement}
-import jp.opap.material.model.{ComponentElement, CompositeElement, LeafElement, MetaFile, MetaHead, ThumbnailInfo}
+import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, ThumbnailInfo}
 import org.bson.Document
+
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
@@ -16,34 +16,34 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
 
   override def collectionName = "components"
 
-  def insert(item: ComponentElement[MetaHead, MetaFile]): Unit = {
-    def headDocument(head: MetaHead): Document = new Document()
-      .append("_id", head.id.toString)
-      .append("name", head.name)
-      .append("parentId", head.parentId.map(_.toString).orNull)
-      .append("repositoryId", head.repositoryId)
-      .append("path", head.path)
+  def insert(item: ComponentEntry): Unit = {
+    def componentDocument(component: ComponentEntry): Document = new Document()
+      .append("_id", component.id.toString)
+      .append("name", component.name)
+      .append("parentId", component.parentId.map(_.toString).orNull)
+      .append("repositoryId", component.repositoryId)
+      .append("path", component.path)
 
-    def leafDocument(head: MetaFile): Document = new Document()
+    def fileDocument(file: FileEntry): Document = new Document()
 
     val document = item match {
-      case CompositeElement(head) => headDocument(head).append("_constructor", "CompositeElement")
-      case LeafElement(head, payload) => (headDocument(head) + leafDocument(payload)).append("_constructor", "LeafElement")
+      case component: DirectoryEntry => componentDocument(component).append("_constructor", "CompositeElement")
+      case component: FileEntry => (componentDocument(component) + fileDocument(component)).append("_constructor", "LeafElement")
     }
 
     this.collection.insertOne(document)
   }
 
-  def findById(id: UUID): Option[ComponentElement[MetaHead, MetaFile]] = {
+  def findById(id: UUID): Option[ComponentEntry] = {
     this.findOneByKey("_id", id)
       .map(fromDocument)
   }
 
-  def findFileById(id: UUID): Option[LeafElement[MetaHead, MetaFile]] = {
+  def findFileById(id: UUID): Option[FileEntry] = {
     this
       .findById(id)
       .flatMap(item => item match {
-        case x@LeafElement(_, _) => Option(x)
+        case file: FileEntry  => Option(file)
         case _ => Option.empty
       })
   }
@@ -51,9 +51,9 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
   def findImages(): Seq[FileAndThumbnail] = {
     def thumb(document: Document): Option[FileAndThumbnail] = {
       fromDocument(document) match {
-        case leaf@LeafElement(_, _) => document
+        case file: FileEntry => document
           .getFirstDocumentFrom("thumbnail")
-          .map(thumbnail => FileAndThumbnail(leaf, MongoThumbnailDao.infoFromDocument(thumbnail)))
+          .map(thumbnail => FileAndThumbnail(file, MongoThumbnailDao.infoFromDocument(thumbnail)))
         case _ => Option.empty
       }
     }
@@ -70,22 +70,24 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
       .toSeq
   }
 
-  def fromDocument(document: Document): Component = {
+  def fromDocument(document: Document): ComponentEntry = {
     val id = UUID.fromString(document.getString("_id"))
+    val repositoryId = document.getString("repositoryId")
     val parentId = Option(document.getString("parentId"))
       .map(UUID.fromString)
-    val head = MetaHead(id, document.getString("repositoryId"), parentId, document.getString("name"), document.getString("path"))
+    val name = document.getString("name")
+    val path = document.getString("path")
 
     document.getString("_constructor") match {
-      case "CompositeElement" => CompositeElement(head)
-      case "LeafElement" => LeafElement(head, MetaFile())
+      case "CompositeElement" => DirectoryEntry(id, repositoryId, parentId, name, path)
+      case "LeafElement" => FileEntry(id, repositoryId, parentId, name, path)
       case _ => throw new IllegalArgumentException()
     }
   }
 }
 
 object MongoComponentDao {
-  case class FileAndThumbnail(@BeanProperty file: FileElement, @BeanProperty thumbnail: ThumbnailInfo)
+  case class FileAndThumbnail(@BeanProperty file: FileEntry, @BeanProperty thumbnail: ThumbnailInfo)
 }
 
 

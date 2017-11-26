@@ -11,7 +11,7 @@ export class MaterialExplorer {
         let request = MaterialExplorer.request;
         let ok: (r: Response) => Promise<Response> = r => r.ok ? Promise.resolve(r) : Promise.reject(r);
 
-        return  {
+        return {
             person: () => request("/person")
                 .then(ok)
                 .then(r => r.json()),
@@ -43,13 +43,11 @@ export interface RepositoryItem {
 
 export interface ThumbnailFile {
     file: {
-        head: {
-            id: String,
-            repositoryId: String,
-            parentId: String,
-            name: String,
-            path: String,
-        }
+        id: String,
+        repositoryId: String,
+        parentId: String,
+        name: String,
+        path: String,
     },
     thumbnail: {
         fileId: String,

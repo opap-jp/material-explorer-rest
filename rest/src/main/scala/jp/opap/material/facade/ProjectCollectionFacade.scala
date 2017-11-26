@@ -6,7 +6,7 @@ import java.util.UUID
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import jp.opap.material.dao.{MongoComponentDao, MongoProjectDao, MongoThumbnailDao}
-import jp.opap.material.model.{ComponentElement, GenericComponent, IntermediateHead, IntermediateLeaf, _}
+import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.{AppConfiguration, ProjectConfig, ProjectInfo}
 import org.eclipse.jgit.api.Git
 
@@ -45,8 +45,8 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
       this.componentDao.insert(component)
 
       (component match {
-        case CompositeElement(_) => Option.empty[LeafElement[MetaHead, MetaFile]]
-        case leaf@LeafElement(_, _) => Option(leaf)
+        case _: DirectoryEntry =>  Option.empty
+        case file: FileEntry => Option(file)
       }).flatMap(leaf => {
         this.converters.find(converter => converter.shouldDispatch(leaf))
           .map(converter => converter.getThumbnail(leaf, getFile(leaf)))
@@ -78,18 +78,18 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
     }
   }
 
-  def intermediateTree(project: ProjectInfo): (ProjectInfo, GenericComponent[IntermediateHead, IntermediateLeaf]) = {
-    def tree(component: File, parentPath: String): GenericComponent[IntermediateHead, IntermediateLeaf] = {
+  def intermediateTree(project: ProjectInfo): (ProjectInfo, IntermediateComponent) = {
+    def tree(component: File, parentPath: String): IntermediateComponent = {
       val path = parentPath + "/" + component.getName
       if (component.isFile) {
-        Leaf(IntermediateHead(component.getName, path), IntermediateLeaf())
+        IntermediateFile(component.getName, path)
       } else {
         val children = component
           .listFiles()
           .filterNot(f => f.isHidden)
           .map(f => tree(f, path))
           .seq
-        Composite(IntermediateHead(component.getName, path), children)
+        IntermediateDirectory(component.getName, path, children)
       }
     }
 
@@ -97,15 +97,14 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
     (project, tree(root, ""))
   }
 
-  def toList(project: ProjectInfo, tree: GenericComponent[IntermediateHead, IntermediateLeaf]): List[ComponentElement[MetaHead, MetaFile]] = {
-    def list(tree: GenericComponent[IntermediateHead, IntermediateLeaf], parentId: Option[UUID]):  List[ComponentElement[MetaHead, MetaFile]]  = {
-      val createHead = (name: String, path: String) => MetaHead(UUID.randomUUID(), project.id, parentId, name, path)
+  def toList(project: ProjectInfo, tree: IntermediateComponent): List[ComponentEntry] = {
+    def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
-        case Composite(head, children) => {
-          val dir = CompositeElement[MetaHead, MetaFile](createHead(head.name, head.path))
-          dir :: children.flatMap(child => list(child, Option(dir.head.id))).toList
+        case IntermediateDirectory(name, path, children) => {
+          val dir = DirectoryEntry(UUID.randomUUID(), project.id, parentId, name, path)
+          dir :: children.flatMap(child => list(child, Option(dir.id))).toList
         }
-        case Leaf(head, payload) => List(LeafElement(createHead(head.name, head.path), MetaFile()))
+        case IntermediateFile(name, path) => List(FileEntry(UUID.randomUUID(), project.id, parentId, name, path))
       }
     }
 
@@ -114,5 +113,5 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
 
   def repositoryPath(repositoryId: String): File = new File(this.configuration.repositoryStore, repositoryId)
 
-  def getFile(file: LeafElement[MetaHead, MetaFile]): File = new File(this.configuration.repositoryStore, file.head.path)
+  def getFile(file: FileEntry): File = new File(this.configuration.repositoryStore, file.path)
 }
