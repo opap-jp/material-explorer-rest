@@ -2,7 +2,6 @@ package jp.opap.material.dao
 
 import java.util.UUID
 
-import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
 import jp.opap.material.model.{Thumbnail, ThumbnailInfo}
 import org.bson.Document
@@ -20,13 +19,9 @@ class MongoThumbnailDao(mongo: MongoDatabase) extends MongoDao(mongo) {
     this.collection.insertOne(document)
   }
 
-  def findById(id: UUID): Option[Thumbnail] = {
-    val filter = new BasicDBObject()
-      .append("file_id", id.toString)
-    val documents = this.collection.find(filter)
-    Option(documents.first())
-      .map(fromDocument)
-  }
+  def findById(id: UUID): Option[Thumbnail] = this
+    .findOneByKey("file_id", id)
+    .map(fromDocument)
 
   def fromDocument(document: Document): Thumbnail = {
     val id = UUID.fromString(document.getString("file_id"))

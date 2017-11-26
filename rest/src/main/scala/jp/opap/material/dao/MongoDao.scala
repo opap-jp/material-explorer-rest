@@ -8,11 +8,11 @@ import org.bson.Document
 abstract class MongoDao(val mongo: MongoDatabase) {
   def collectionName: String
 
-  val collection: MongoCollection[Document]  = this.mongo.getCollection(this.collectionName)
+  val collection: MongoCollection[Document] = this.mongo.getCollection(this.collectionName)
 
-  protected def findById(id: Any): Option[Document] = {
+  protected def findOneByKey(key: String, value: Any): Option[Document] = {
     val filter = new BasicDBObject()
-      .append("_id", id)
+      .append(key, value.toString)
     val documents = this.collection.find(filter)
     Option(documents.first())
   }
@@ -38,6 +38,15 @@ object MongoDao {
           case _ => Option.empty
         }
       })
+    }
+
+    def getFirstDocumentFrom(key: String): Option[Document] = {
+      this
+        .getDocuments(key)
+        .flatMap(documents => documents match {
+          case x :: xs => Option(x)
+          case _ => Option.empty
+        })
     }
   }
 }

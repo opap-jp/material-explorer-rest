@@ -18,11 +18,11 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
 
   def insert(item: ComponentElement[MetaHead, MetaFile]): Unit = {
     def headDocument(head: MetaHead): Document = new Document()
-        .append("_id", head.id.toString)
-        .append("name", head.name)
-        .append("parentId", head.parentId.map(_.toString).orNull)
-        .append("repositoryId", head.repositoryId)
-        .append("path", head.path)
+      .append("_id", head.id.toString)
+      .append("name", head.name)
+      .append("parentId", head.parentId.map(_.toString).orNull)
+      .append("repositoryId", head.repositoryId)
+      .append("path", head.path)
 
     def leafDocument(head: MetaFile): Document = new Document()
 
@@ -35,27 +35,25 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
   }
 
   def findById(id: UUID): Option[ComponentElement[MetaHead, MetaFile]] = {
-    this.findById(id.toString)
+    this.findOneByKey("_id", id)
       .map(fromDocument)
   }
 
   def findFileById(id: UUID): Option[LeafElement[MetaHead, MetaFile]] = {
-    this.findById(id).flatMap(item => item match {
-      case x@LeafElement(_, _) => Option(x)
-      case _ => Option.empty
-    })
+    this
+      .findById(id)
+      .flatMap(item => item match {
+        case x@LeafElement(_, _) => Option(x)
+        case _ => Option.empty
+      })
   }
 
   def findImages(): Seq[FileAndThumbnail] = {
     def thumb(document: Document): Option[FileAndThumbnail] = {
-      val file = fromDocument(document)
-      file match {
+      fromDocument(document) match {
         case leaf@LeafElement(_, _) => document
-            .getDocuments("thumbnail")
-            .flatMap(doc => doc match {
-              case x :: xs => Option(FileAndThumbnail(leaf, MongoThumbnailDao.infoFromDocument(x)))
-              case _ => Option.empty
-            })
+          .getFirstDocumentFrom("thumbnail")
+          .map(thumbnail => FileAndThumbnail(leaf, MongoThumbnailDao.infoFromDocument(thumbnail)))
         case _ => Option.empty
       }
     }
@@ -74,13 +72,14 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
 
   def fromDocument(document: Document): Component = {
     val id = UUID.fromString(document.getString("_id"))
-    val parentId = Option(document.getString("parentId")).map(UUID.fromString)
-
+    val parentId = Option(document.getString("parentId"))
+      .map(UUID.fromString)
     val head = MetaHead(id, document.getString("repositoryId"), parentId, document.getString("name"), document.getString("path"))
 
     document.getString("_constructor") match {
       case "CompositeElement" => CompositeElement(head)
       case "LeafElement" => LeafElement(head, MetaFile())
+      case _ => throw new IllegalArgumentException()
     }
   }
 }
