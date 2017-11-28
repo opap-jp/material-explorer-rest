@@ -3,12 +3,12 @@ package jp.opap.material
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
-class ProjectConfig {
+class RepositoryConfig {
   @BeanProperty
-  var projects: java.util.List[ProjectInfo] = List().asJava
+  var repositories: java.util.List[RepositoryInfo] = List().asJava
 }
 
-class ProjectInfo {
+class RepositoryInfo {
   @BeanProperty
   var id: String = ""
 

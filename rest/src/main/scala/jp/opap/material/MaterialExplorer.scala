@@ -7,10 +7,10 @@ import com.mongodb.MongoClient
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
-import jp.opap.material.dao.{MongoComponentDao, MongoItemDao, MongoProjectDao, MongoThumbnailDao}
+import jp.opap.material.dao.{MongoComponentDao, MongoItemDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
-import jp.opap.material.facade.{ProjectCollectionFacade, ProjectDataEventEmitter}
+import jp.opap.material.facade.{RepositoryCollectionFacade, RepositoryDataEventEmitter}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
 
@@ -29,15 +29,15 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val dbClient = new MongoClient(configuration.dbHost)
     val db = dbClient.getDatabase("material_explorer")
 
-    val projectEventEmitter = new ProjectDataEventEmitter()
+    val repositoryEventEmitter = new RepositoryDataEventEmitter()
 
-    val projectDao = new MongoProjectDao(db)
+    val repositoryDao = new MongoRepositoryDao(db)
     val itemDao = new MongoItemDao(db)
     val componentDao = new MongoComponentDao(db)
     val thumbnailDao = new MongoThumbnailDao(db)
-    val projectCollectionFacade = new ProjectCollectionFacade(configuration, projectDao, componentDao, thumbnailDao, projectEventEmitter)
+    val repositoryCollectionFacade = new RepositoryCollectionFacade(configuration, repositoryDao, componentDao, thumbnailDao, repositoryEventEmitter)
 
-    val rootResource = new RootResource(projectDao, itemDao, componentDao, thumbnailDao, projectEventEmitter)
+    val rootResource = new RootResource(repositoryDao, itemDao, componentDao, thumbnailDao, repositoryEventEmitter)
 
     val pattern = "\\.([a-zA-Z0-9]+)$".r
     val server = environment.jersey()
@@ -57,12 +57,12 @@ object MaterialExplorer extends Application[AppConfiguration] {
 
     new Thread() {
       override def run(): Unit = {
-        MaterialExplorer.this.updateProjectData(projectCollectionFacade, configuration)
+        MaterialExplorer.this.updateRepositoryData(repositoryCollectionFacade, configuration)
       }
     }.start()
   }
 
-  def updateProjectData(facade: ProjectCollectionFacade, configuration: AppConfiguration): Unit = {
-    facade.updateProjects(configuration)
+  def updateRepositoryData(facade: RepositoryCollectionFacade, configuration: AppConfiguration): Unit = {
+    facade.updateRepositories(configuration)
   }
 }

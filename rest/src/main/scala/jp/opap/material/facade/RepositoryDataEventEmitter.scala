@@ -3,7 +3,7 @@ package jp.opap.material.facade
 import scala.beans.BeanProperty
 import scala.collection.mutable
 
-class ProjectDataEventEmitter() {
+class RepositoryDataEventEmitter() {
   var _isRunning: Boolean = false
   def setRunning(value: Boolean): Unit = synchronized {
     _isRunning = value

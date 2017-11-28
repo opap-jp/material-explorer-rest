@@ -5,24 +5,24 @@ import java.util.UUID
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import jp.opap.material.dao.{MongoComponentDao, MongoProjectDao, MongoThumbnailDao}
+import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
-import jp.opap.material.{AppConfiguration, ProjectConfig, ProjectInfo}
+import jp.opap.material.{AppConfiguration, RepositoryConfig, RepositoryInfo}
 import org.eclipse.jgit.api.Git
 
 import scala.collection.JavaConverters._
 
-class ProjectCollectionFacade(val configuration: AppConfiguration,
-    val projectDao: MongoProjectDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
-    val eventEmitter: ProjectDataEventEmitter) {
+class RepositoryCollectionFacade(val configuration: AppConfiguration,
+    val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
+    val eventEmitter: RepositoryDataEventEmitter) {
   val converters: Seq[MediaConverter] = Seq(
       new ImageConverter(new RestResize(configuration.imageMagickHost))
     )
 
-  def updateProjects(configuration: AppConfiguration): Unit = {
+  def updateRepositories(configuration: AppConfiguration): Unit = {
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリのURLを取得する。
     // 取得を試みるプロジェクトのリスト
-    val remotes = loadProjectConfig(configuration).projects.asScala
+    val remotes = loadRepositoryConfig(configuration).repositories.asScala
 
     // 2. すべてのリモートリポジトリをクローンまたはプルする。
     remotes.foreach(r => cloneOrPull(r))
@@ -56,16 +56,16 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
     })
   }
 
-  def loadProjectConfig(configuration: AppConfiguration): ProjectConfig = {
+  def loadRepositoryConfig(configuration: AppConfiguration): RepositoryConfig = {
     val mapper = new ObjectMapper(new YAMLFactory())
     try {
-      mapper.readValue(new File(configuration.projects), classOf[ProjectConfig])
+      mapper.readValue(new File(configuration.repositories), classOf[RepositoryConfig])
     } catch {
       case e: Exception => throw e
     }
   }
 
-  def cloneOrPull(project: ProjectInfo): Unit = {
+  def cloneOrPull(project: RepositoryInfo): Unit = {
     val dir = new File(this.configuration.repositoryStore, project.id)
     if (dir.exists()) {
       Git.open(dir)
@@ -80,7 +80,7 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
     }
   }
 
-  def intermediateTree(project: ProjectInfo): (ProjectInfo, IntermediateComponent) = {
+  def intermediateTree(project: RepositoryInfo): (RepositoryInfo, IntermediateComponent) = {
     def tree(component: File, parentPath: String): IntermediateComponent = {
       val path = parentPath + "/" + component.getName
       if (component.isFile) {
@@ -99,7 +99,7 @@ class ProjectCollectionFacade(val configuration: AppConfiguration,
     (project, tree(root, ""))
   }
 
-  def toList(project: ProjectInfo, tree: IntermediateComponent): List[ComponentEntry] = {
+  def toList(project: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {
     def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
         case IntermediateDirectory(name, path, children) => {

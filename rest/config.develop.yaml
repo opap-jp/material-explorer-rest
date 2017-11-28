@@ -1,6 +1,6 @@
 # REST サーバーをローカル JVM で起動する場合の設定です
 dbHost: localhost
-projects: "./projects.yaml"
+repositories: "./projects.yaml"
 repositoryStore: "temp/repositories"
 imageMagickHost: http://localhost:9090
 server:
