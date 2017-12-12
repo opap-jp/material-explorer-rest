@@ -14,7 +14,9 @@ object JsonSerializers {
     this.addSerializer(classOf[Map[_, _]], new MapSerializer())
     this.addSerializer(classOf[LocalDateTime], new LocalDateTimeSerializer())
     this.addSerializer(classOf[Option[_]], new OptionSerializer())
+//    this.addDeserializer(classOf[Option[_]], OptionDeserializer)
   }
+
 
   class SeqSerializer() extends StdSerializer[Seq[_]](classOf[Seq[_]]) {
     override def serialize(value: Seq[_], gen: JsonGenerator, provider: SerializerProvider): Unit = {
@@ -46,4 +48,8 @@ object JsonSerializers {
         gen.writeNull()
     }
   }
+
+//  object OptionDeserializer extends StdDeserializer[Option[_]](classOf[Option[_]]) {
+//    override def deserialize(p: JsonParser, ctxt: DeserializationContext): Option[_] = ???
+//  }
 }

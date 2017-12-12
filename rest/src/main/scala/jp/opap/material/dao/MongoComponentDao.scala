@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
+import jp.opap.material.RepositoryInfo
 import jp.opap.material.dao.MongoComponentDao.FileAndThumbnail
 import jp.opap.material.dao.MongoDao.Documents
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, ThumbnailInfo}
@@ -20,8 +21,8 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
     def componentDocument(component: ComponentEntry): Document = new Document()
       .append("_id", component.id.toString)
       .append("name", component.name)
-      .append("parentId", component.parentId.map(_.toString).orNull)
-      .append("repositoryId", component.repositoryId)
+      .append("parent_id", component.parentId.map(_.toString).orNull)
+      .append("repository_id", component.repositoryId)
       .append("path", component.path)
 
     def fileDocument(file: FileEntry): Document = new Document()
@@ -48,6 +49,21 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
       })
   }
 
+  def findFiles(repositoryId: String): Seq[FileEntry] = {
+    val filter = new BasicDBObject()
+      .append("repository_id", repositoryId)
+    this.collection.find(filter)
+      .asScala
+      .map(fromDocument)
+      .par
+      .flatMap {
+        case file: FileEntry => Option(file)
+        case _ => Option.empty[FileEntry]
+      }
+      .toSeq
+      .seq
+  }
+
   def findImages(): Seq[FileAndThumbnail] = {
     def thumb(document: Document): Option[FileAndThumbnail] = {
       fromDocument(document) match {
@@ -70,10 +86,16 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
       .toSeq
   }
 
+  def deleteByRepositoryId(repositoryId: String): Unit = {
+    val filter = new BasicDBObject()
+      .append("repository_id", repositoryId)
+    this.collection.deleteMany(filter)
+  }
+
   def fromDocument(document: Document): ComponentEntry = {
     val id = UUID.fromString(document.getString("_id"))
-    val repositoryId = document.getString("repositoryId")
-    val parentId = Option(document.getString("parentId"))
+    val repositoryId = document.getString("repository_id")
+    val parentId = Option(document.getString("parent_id"))
       .map(UUID.fromString)
     val name = document.getString("name")
     val path = document.getString("path")

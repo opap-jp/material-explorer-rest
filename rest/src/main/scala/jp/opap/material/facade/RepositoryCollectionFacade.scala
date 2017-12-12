@@ -5,115 +5,146 @@ import java.util.UUID
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
-import jp.opap.material.{AppConfiguration, RepositoryConfig, RepositoryInfo}
-import org.eclipse.jgit.api.Git
-
-import scala.collection.JavaConverters._
+import jp.opap.material.{AppConfiguration, RepositoryConfig}
 
 class RepositoryCollectionFacade(val configuration: AppConfiguration,
     val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
     val eventEmitter: RepositoryDataEventEmitter) {
+  val loadersFactories: Seq[RepositoryLoaderFactory] = Seq(GitLabRepositoryLoaderFactory)
   val converters: Seq[MediaConverter] = Seq(
       new ImageConverter(new RestResize(configuration.imageMagickHost))
     )
 
   def updateRepositories(configuration: AppConfiguration): Unit = {
-    // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリのURLを取得する。
-    // 取得を試みるプロジェクトのリスト
-    val remotes = loadRepositoryConfig(configuration).repositories.asScala
+    // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
 
-    // 2. すべてのリモートリポジトリをクローンまたはプルする。
-    remotes.foreach(r => cloneOrPull(r))
+    // TODO: 警告の登録
+    val repositories = loadRepositoryConfig(configuration).repositories
+      .flatMap(info => {
+        val repositoryStore = new File(this.configuration.repositoryStore, info.id)
+        this.loadersFactories.view.map(factory => factory.attemptCreate(info, repositoryStore))
+          .find(loader => loader.isDefined)
+          .flatten
+          .seq
+      })
 
-    // 3. リポジトリから、仮想的なファイルの木を構成する。
-    val intermediateTrees = remotes.par.map(intermediateTree).toMap
+    repositories.foreach(updateRepository)
+  }
 
-    // TODO: 4. すべてのファイルやディレクトリについて、対応するメタデータ（*.yaml, *.md）があればそれを関連づける。
-    // このとき、マスタデータで宣言されていないタグについては警告データを登録する。
+  def updateRepository(loader: RepositoryLoader): Unit = {
+    def toMap(files: Seq[IntermediateFile]) = files.map(file => (file.path, file)).toMap
 
-    // TODO: 6. マージやスコープなどを考慮して、メタデータとファイルの関連づけを行なう。
+    val info = loader.info
+    val savedRepository = this.repositoryDao.findById(info.id)
 
-    // 木をリストにする。
-    val records = intermediateTrees.flatMap(tree => toList(tree._1, tree._2))
+    // データベースに保存されている、ファイルのリストを取得します。
+    val storedFiles = this.componentDao.findFiles(info.id).map(_.toIntermediate)
 
-    // 7. データベースを空にする。
-    this.componentDao.drop()
-    this.thumbnailDao.drop()
+    // リモートリポジトリから、変更されたファイルのリストを取得します。
+    val changedResult = loader.loadChangedFiles(savedRepository)
 
-    // TODO: 8. ファイル名とメタデータの組をデータベースに登録する。
-    records.par.foreach(component => {
-      this.componentDao.insert(component)
+    // 変更されたファイルのキャッシュを削除します。
+    changedResult.files.foreach(file => loader.deleteCache(file.path))
 
-      (component match {
-        case _: DirectoryEntry =>  Option.empty
-        case file: FileEntry => Option(file)
-      }).flatMap(file => {
-        this.converters.find(converter => converter.shouldDispatch(file))
-          .map(converter => converter.convert(file, getFile(file)))
-      }).foreach(thumb => this.thumbnailDao.insert(thumb))
-    })
+    // 保存されているファイルのリストに、変更されたファイルをマージします。変更されたファイルのみ、Id が変化します。
+    val mergedFiles = (toMap(storedFiles) ++ toMap(changedResult.files)).values.toList.sortBy(file => file.path)
+
+    // ファイルのリストからファイルツリーを作ります。
+    val fileTree = intermediateTree(mergedFiles)
+
+    // TODO: すべてのファイルやディレクトリについて、対応するメタデータ（*.yaml, *.md）があればそれを関連づけます。
+    // このとき、マスタデータで宣言されていないタグについては警告データを登録します。
+
+    // TODO: マージやスコープなどを考慮して、メタデータとファイルの関連づけを行ないます。
+
+    // ファイルやディレクトリの古い情報をデータベースから削除します。
+    this.componentDao.deleteByRepositoryId(info.id)
+
+    // リポジトリの情報をデータベースに書き込みます。
+    this.repositoryDao.update(changedResult.repository)
+
+    // ファイルやディレクトリの情報をデータベースに書き込みます。
+    toList(info, fileTree)
+      .par
+      .foreach(component => {
+        this.componentDao.insert(component)
+
+        (component match {
+          case _: DirectoryEntry =>  Option.empty
+          case file: FileEntry => Option(file)
+        })
+        .foreach(file => this.updateThumbnaleIfChanged(file, loader))
+      })
   }
 
   def loadRepositoryConfig(configuration: AppConfiguration): RepositoryConfig = {
     val mapper = new ObjectMapper(new YAMLFactory())
     try {
-      mapper.readValue(new File(configuration.repositories), classOf[RepositoryConfig])
+      RepositoryConfig(RepositoryConfig.fromYaml(new File(configuration.repositories)))
     } catch {
       case e: Exception => throw e
     }
   }
 
-  def cloneOrPull(project: RepositoryInfo): Unit = {
-    val dir = new File(this.configuration.repositoryStore, project.id)
-    if (dir.exists()) {
-      Git.open(dir)
-        .pull()
-        .call()
-    } else {
-      val result = Git.cloneRepository()
-        .setURI(project.url)
-        .setProgressMonitor(new AppProgressMonitor())
-        .setDirectory(dir)
-        .call()
-    }
-  }
+  def intermediateTree(files: Seq[IntermediateFile]): IntermediateComponent = {
+    def updateDirectory(file: IntermediateFile, parent: IntermediateDirectory, portions: List[String]): IntermediateDirectory = {
+      portions match {
+        case _ :: Nil => parent.copy(children = parent.children + (file.name -> file))
+        case head :: followings =>
+          val dir = parent.children.get(head)
+            .flatMap {
+              case dir: IntermediateDirectory => Option(dir)
+              case _ => { System.out.println(file); throw new IllegalArgumentException() }
+            }
+            .getOrElse(IntermediateDirectory(UUID.randomUUID(), head, parent.path.map(p => s"$p/$head").orElse(Option(head)) , Map()))
 
-  def intermediateTree(project: RepositoryInfo): (RepositoryInfo, IntermediateComponent) = {
-    def tree(component: File, parentPath: String): IntermediateComponent = {
-      val path = parentPath + "/" + component.getName
-      if (component.isFile) {
-        IntermediateFile(component.getName, path)
-      } else {
-        val children = component
-          .listFiles()
-          .filterNot(f => f.isHidden)
-          .map(f => tree(f, path))
-          .seq
-        IntermediateDirectory(component.getName, path, children)
+          val updated = updateDirectory(file, dir, followings)
+          parent.copy(children = parent.children + (updated.name -> updated))
+        case _ => { System.out.println(file); throw new IllegalArgumentException() }
       }
     }
 
-    val root = repositoryPath(project.id)
-    (project, tree(root, ""))
+    def accumulate(acc: IntermediateDirectory, file: IntermediateFile): IntermediateDirectory = {
+      val portions = file.path.split("/").toList
+      updateDirectory(file, acc, portions)
+    }
+
+    val root = IntermediateDirectory(UUID.randomUUID(), "", Option.empty, Map())
+    files.seq.foldLeft(root)(accumulate)
   }
 
-  def toList(project: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {
+  def toList(info: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {
     def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
-        case IntermediateDirectory(name, path, children) => {
-          val dir = DirectoryEntry(UUID.randomUUID(), project.id, parentId, name, path)
-          dir :: children.flatMap(child => list(child, Option(dir.id))).toList
-        }
-        case IntermediateFile(name, path) => List(FileEntry(UUID.randomUUID(), project.id, parentId, name, path))
+        case IntermediateDirectory(id, name, Some(path), children) =>
+          val dir = DirectoryEntry(id, info.id, parentId, name, path)
+          dir :: children.values.flatMap(child => list(child, Option(dir.id))).toList
+        case IntermediateDirectory(id, _, None, children) => children.values.flatMap(child => list(child, Option(id))).toList
+        case IntermediateFile(id, name, path) => List(FileEntry(id, info.id, parentId, name, path))
       }
     }
 
     list(tree, Option.empty)
   }
 
-  def repositoryPath(repositoryId: String): File = new File(this.configuration.repositoryStore, repositoryId)
+  def updateThumbnaleIfChanged(file: FileEntry, loader: RepositoryLoader): Unit = {
+    // UUID でサムネイルの存在を確認します。
+    // あったら、なにもしません。なければ、該当するパスのドキュメントを削除し、ダウンロードし、サムネイル生成、書き込み。
+    this.converters.find(converter => converter.shouldDispatch(file))
+      .foreach(converter => {
+        if (this.thumbnailDao.findById(file.id).isEmpty) {
+          System.out.println(s"convert into thumbnail: $file")
+          val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
+          this.thumbnailDao.deleteByFile(file)
+          this.thumbnailDao.insert(thumb, file)
+          System.out.println(s"thumbnail created: $file")
+        }
+      })
+  }
 
-  def getFile(file: FileEntry): File = new File(this.configuration.repositoryStore, file.path)
+  def repositoryPath(repositoryId: String): File = new File(this.configuration.repositoryStore, repositoryId)
 }

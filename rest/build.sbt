@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.0.201710071750-r",
   "org.apache.httpcomponents" % "httpmime" % "4.5.3",
   "org.apache.httpcomponents" % "fluent-hc" % "4.5.3",
+  "org.yaml" % "snakeyaml" % "1.19",
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
