@@ -4,7 +4,6 @@ import java.util.UUID
 
 import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
-import jp.opap.material.RepositoryInfo
 import jp.opap.material.dao.MongoComponentDao.FileAndThumbnail
 import jp.opap.material.dao.MongoDao.Documents
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, ThumbnailInfo}

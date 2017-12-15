@@ -13,6 +13,7 @@ import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.{RepositoryCollectionFacade, RepositoryDataEventEmitter}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
+import org.slf4j.LoggerFactory
 
 object MaterialExplorer extends Application[AppConfiguration] {
   def main(args: Array[String]): Unit = {
@@ -54,6 +55,7 @@ object MaterialExplorer extends Application[AppConfiguration] {
     // JSON Pretty Print
     servlets.addFilter(classOf[PrettyPrintFilter].getSimpleName, PrettyPrintFilter.SINGLETON)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/*")
+
 
     new Thread() {
       override def run(): Unit = {

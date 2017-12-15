@@ -10,16 +10,21 @@ import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbna
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.{AppConfiguration, RepositoryConfig}
+import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(val configuration: AppConfiguration,
     val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
     val eventEmitter: RepositoryDataEventEmitter) {
+  val LOG: Logger = LoggerFactory.getLogger(classOf[RepositoryCollectionFacade])
+
   val loadersFactories: Seq[RepositoryLoaderFactory] = Seq(GitLabRepositoryLoaderFactory)
   val converters: Seq[MediaConverter] = Seq(
       new ImageConverter(new RestResize(configuration.imageMagickHost))
     )
 
   def updateRepositories(configuration: AppConfiguration): Unit = {
+    LOG.info("リポジトリ データの更新を開始しました。")
+
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
 
     // TODO: 警告の登録
@@ -31,12 +36,17 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
           .flatten
           .seq
       })
+    LOG.info("リポジトリ ローダーを生成しました。")
 
     repositories.foreach(updateRepository)
+
+    LOG.info("リポジトリ データの更新が終了しました。")
   }
 
   def updateRepository(loader: RepositoryLoader): Unit = {
     def toMap(files: Seq[IntermediateFile]) = files.map(file => (file.path, file)).toMap
+
+    LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新を開始しました。")
 
     val info = loader.info
     val savedRepository = this.repositoryDao.findById(info.id)
@@ -68,6 +78,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     this.repositoryDao.update(changedResult.repository)
 
     // ファイルやディレクトリの情報をデータベースに書き込みます。
+    LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）のサムネイル生成を開始します。")
     toList(info, fileTree)
       .par
       .foreach(component => {
@@ -79,6 +90,8 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
         })
         .foreach(file => this.updateThumbnaleIfChanged(file, loader))
       })
+    LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）のサムネイル生成が終了しました。")
+    LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新が終了しました。")
   }
 
   def loadRepositoryConfig(configuration: AppConfiguration): RepositoryConfig = {
@@ -86,7 +99,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     try {
       RepositoryConfig(RepositoryConfig.fromYaml(new File(configuration.repositories)))
     } catch {
-      case e: Exception => throw e
+      case e: Exception => throw new IllegalArgumentException("リポジトリ設定の取得に失敗しました。", e)
     }
   }
 
@@ -137,11 +150,11 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     this.converters.find(converter => converter.shouldDispatch(file))
       .foreach(converter => {
         if (this.thumbnailDao.findById(file.id).isEmpty) {
-          System.out.println(s"convert into thumbnail: $file")
+          LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
           val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
           this.thumbnailDao.deleteByFile(file)
           this.thumbnailDao.insert(thumb, file)
-          System.out.println(s"thumbnail created: $file")
+          LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
         }
       })
   }

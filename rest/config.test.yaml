@@ -6,3 +6,18 @@ imageMagickHost: http://im:9090
 server:
   gzip:
     enabled: false
+logging:
+  level: INFO
+  loggers:
+    io.dropwizard: INFO
+  appenders:
+    -
+      type: console
+    -
+      type: file
+      currentLogFilename: /var/log/material-explorer/material-explorer.log
+      threshold: ALL
+      archive: true
+      archivedLogFilenamePattern: /var/log/material-explorer/material-explorer-%d.log
+      archivedFileCount: 5
+      timeZone: UTC

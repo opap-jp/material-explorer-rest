@@ -6,3 +6,10 @@ imageMagickHost: http://localhost:9090
 server:
   gzip:
     enabled: false
+# jp.opap.material のログは DEBUG レベルまで表示します。それ以外は WARN 以上のみ表示します。
+logging:
+  level: WARN
+  loggers:
+    jp.opap.material: DEBUG
+  appenders:
+    - type: console

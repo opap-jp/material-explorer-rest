@@ -2,6 +2,14 @@ FROM ubuntu:17.10
 
 MAINTAINER OPAP-JP
 
+# ローケルを設定します
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+RUN apt-get update \
+    && apt-get -y install locales \
+    && locale-gen en_US.UTF-8
+
 # 依存パッケージを取得します
 # Scala, sbt のインストールを行ないます
 RUN apt-get update
