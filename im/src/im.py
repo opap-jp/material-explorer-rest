@@ -11,9 +11,8 @@ def resize():
     if (width is None or height is None or data is None):
         return abort(400)
 
-    command = 'convert - -resize {0}x{1} png:-'.format(width, height)
-
     try:
+        command = 'convert - -resize {0}x{1} png:-'.format(int(width), int(height))
         process = subprocess.Popen(command.split(" "), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         process.stdin.write(data.read())
         process.stdin.close()
@@ -24,6 +23,8 @@ def resize():
             return Response(converted, mimetype='image/png')
         else:
             return abort(400)
+    except ValueError as e:
+        return abort(400)
     except OSError as e:
         return abort(500)
 
