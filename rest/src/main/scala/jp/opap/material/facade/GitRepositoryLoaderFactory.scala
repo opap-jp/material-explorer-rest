@@ -5,7 +5,8 @@ import java.util.UUID
 
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.facade.RepositoryLoader.{ChangedResult, RepositoryLoaderFactory}
-import jp.opap.material.model.{IntermediateFile, Repository}
+import jp.opap.material.model.Components.IntermediateFile
+import jp.opap.material.model.Repository
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.TextProgressMonitor
 

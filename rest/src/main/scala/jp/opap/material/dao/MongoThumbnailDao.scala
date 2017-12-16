@@ -5,7 +5,8 @@ import java.util.UUID
 import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
 import jp.opap.material.dao.MongoThumbnailDao.fromDocument
-import jp.opap.material.model.{FileEntry, Thumbnail, ThumbnailInfo}
+import jp.opap.material.model.ComponentEntry.FileEntry
+import jp.opap.material.model.Thumbnails.{Thumbnail, ThumbnailInfo}
 import org.bson.Document
 import org.bson.types.Binary
 

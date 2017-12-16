@@ -6,7 +6,9 @@ import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoDatabase
 import jp.opap.material.dao.MongoComponentDao.FileAndThumbnail
 import jp.opap.material.dao.MongoDao.Documents
-import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, ThumbnailInfo}
+import jp.opap.material.model.ComponentEntry
+import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
+import jp.opap.material.model.Thumbnails.ThumbnailInfo
 import org.bson.Document
 
 import scala.beans.BeanProperty

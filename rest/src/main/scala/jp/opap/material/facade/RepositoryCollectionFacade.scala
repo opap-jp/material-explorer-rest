@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
+import jp.opap.material.model.ComponentEntry
+import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
+import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.model.Warning.ComponentWarning
-import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.{AppConfiguration, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 

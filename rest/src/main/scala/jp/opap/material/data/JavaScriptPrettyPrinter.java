@@ -155,15 +155,13 @@ public class JavaScriptPrettyPrinter implements PrettyPrinter {
     }
 
     static ObjectWriterModifier injector() {
-        ObjectWriterModifier m = new ObjectWriterModifier() {
+        return new ObjectWriterModifier() {
             @Override
             public ObjectWriter modify(EndpointConfigBase<?> endpoint, MultivaluedMap<String, Object> responseHeaders,
                                        Object valueToWrite, ObjectWriter w, JsonGenerator g) throws IOException {
                 return w.with(new JavaScriptPrettyPrinter(4));
             }
         };
-        // ObjectWriterInjector.set(m);
-        return m;
     }
 
     public static class PrettyPrintFilter implements Filter {
