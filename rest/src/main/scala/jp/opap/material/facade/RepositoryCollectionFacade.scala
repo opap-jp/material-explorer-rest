@@ -1,6 +1,6 @@
 package jp.opap.material.facade
 
-import java.io.File
+import java.io.{File, IOException}
 import java.util.UUID
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -8,6 +8,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
+import jp.opap.material.model.Warning.ComponentWarning
 import jp.opap.material.model.{ComponentEntry, DirectoryEntry, FileEntry, IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.{AppConfiguration, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
@@ -151,10 +152,20 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
       .foreach(converter => {
         if (this.thumbnailDao.findById(file.id).isEmpty) {
           LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
-          val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
-          this.thumbnailDao.deleteByFile(file)
-          this.thumbnailDao.insert(thumb, file)
-          LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
+
+          try {
+            val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
+            this.thumbnailDao.deleteByFile(file)
+            this.thumbnailDao.insert(thumb, file)
+            LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
+          } catch {
+            case e: IOException => {
+              val warning = ComponentWarning(UUID.randomUUID(), s"${loader.info.id} - ${file.path} のサムネイルの生成に失敗しました。",
+                Option(e.getMessage), file.repositoryId, file.path)
+              // TODO: 警告の登録（現在はログ出力）
+              LOG.info(warning.message)
+            }
+          }
         }
       })
   }
