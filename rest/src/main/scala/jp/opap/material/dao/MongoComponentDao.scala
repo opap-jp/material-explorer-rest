@@ -15,7 +15,6 @@ import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
 class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
-
   override def collectionName = "components"
 
   def insert(item: ComponentEntry): Unit = {
