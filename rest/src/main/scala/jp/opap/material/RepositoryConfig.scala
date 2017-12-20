@@ -1,10 +1,13 @@
 package jp.opap.material
 
 import java.io.File
+import java.util.UUID
 
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.data.Yaml
-import jp.opap.material.data.Yaml.{ListNode, MapNode}
+import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
+import jp.opap.material.model.Warning
+import jp.opap.material.model.Warning.GlobalWarning
 
 case class RepositoryConfig(repositories: List[RepositoryInfo])
 
@@ -16,26 +19,27 @@ object RepositoryConfig {
 
   case class GitlabRepositoryInfo(id: String, title: String, namespace: String, name: String) extends RepositoryInfo
 
-  def fromYaml(file: File): List[RepositoryInfo] = {
-    def item(node: AnyRef): Option[RepositoryInfo] = {
-      val e: NoSuchElementException = null
-      node match {
-        case MapNode(item) => item.get("protocol")
-          .flatMap(protocol => protocol match {
-            case "gitlab" => Option(GitlabRepositoryInfo(item("id").asInstanceOf[String], item("title").asInstanceOf[String], item("namespace").asInstanceOf[String], item("name").asInstanceOf[String]))
-            case _ => Option.empty
-          })
-        case _ => Option.empty
+  def fromYaml(file: File): List[Either[GlobalWarning, RepositoryInfo]] = {
+    def item(element: (AnyRef, Int)): Either[GlobalWarning, RepositoryInfo] = {
+      val (node, i) = element
+      try {
+        node match {
+          case item: MapNode => item("protocol").get match {
+            case "gitlab" => Right(GitlabRepositoryInfo(item("id").string, item("title").string, item("namespace").string, item("name").string))
+            case _ => throw EntryException("protocol が必要です。")
+          }
+        }
+      } catch {
+        case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), s"repositories[$i]: ${e.message}"))
       }
     }
 
-    // TODO: YAML が妥当でないとき、エラーを返す。
     Yaml.parse(file) match {
       case MapNode(root) => root.get("repositories") match {
-        case Some(ListNode(items)) => items.flatMap(item)
-        case _ => List()
+        case Some(ListNode(items)) => items.zipWithIndex.map(item)
+        case _ => List(Left(new GlobalWarning(UUID.randomUUID(), "repositories が必要です。")))
       }
-      case _ => List()
+      case _ => List(Left(new GlobalWarning(UUID.randomUUID(), "repositories が必要です。")))
     }
   }
 }

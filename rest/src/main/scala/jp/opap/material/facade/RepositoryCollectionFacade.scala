@@ -12,9 +12,10 @@ import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.ComponentEntry
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
-import jp.opap.material.model.Warning.ComponentWarning
+import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
 import jp.opap.material.{AppConfiguration, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
+import jp.opap.material.data.Collections.EitherList
 
 class RepositoryCollectionFacade(val configuration: AppConfiguration,
     val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
@@ -32,7 +33,9 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
 
     // TODO: 警告の登録
-    val repositories = loadRepositoryConfig(configuration).repositories
+    val (warnings, config) = loadRepositoryConfig(configuration)
+    warnings.foreach(w => LOG.info(w.message))
+    val repositories = config.repositories
       .flatMap(info => {
         val repositoryStore = new File(this.configuration.repositoryStore, info.id)
         this.loadersFactories.view.map(factory => factory.attemptCreate(info, repositoryStore))
@@ -98,12 +101,15 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新が終了しました。")
   }
 
-  def loadRepositoryConfig(configuration: AppConfiguration): RepositoryConfig = {
+  def loadRepositoryConfig(configuration: AppConfiguration): (List[GlobalWarning], RepositoryConfig) = {
     val mapper = new ObjectMapper(new YAMLFactory())
     try {
-      RepositoryConfig(RepositoryConfig.fromYaml(new File(configuration.repositories)))
+      val (warnings, repositories) = RepositoryConfig.fromYaml(new File(configuration.repositories)).leftRight
+      (warnings, RepositoryConfig(repositories))
     } catch {
-      case e: Exception => throw new IllegalArgumentException("リポジトリ設定の取得に失敗しました。", e)
+      case e: Exception =>
+        val warning = GlobalWarning(UUID.randomUUID(), "リポジトリ設定の取得に失敗しました。", Option(e.getMessage))
+        (List(warning),  RepositoryConfig(List()))
     }
   }
 
@@ -115,13 +121,13 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
           val dir = parent.children.get(head)
             .flatMap {
               case dir: IntermediateDirectory => Option(dir)
-              case _ => { System.out.println(file); throw new IllegalArgumentException() }
+              case _ => throw new IllegalArgumentException(file.toString)
             }
             .getOrElse(IntermediateDirectory(UUID.randomUUID(), head, parent.path.map(p => s"$p/$head").orElse(Option(head)) , Map()))
 
           val updated = updateDirectory(file, dir, followings)
           parent.copy(children = parent.children + (updated.name -> updated))
-        case _ => { System.out.println(file); throw new IllegalArgumentException() }
+        case _ => throw new IllegalArgumentException(file.toString)
       }
     }
 
@@ -154,9 +160,8 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     this.converters.find(converter => converter.shouldDispatch(file))
       .foreach(converter => {
         if (this.thumbnailDao.findById(file.id).isEmpty) {
-          LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
-
           try {
+            LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
             val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
             this.thumbnailDao.deleteByFile(file)
             this.thumbnailDao.insert(thumb, file)

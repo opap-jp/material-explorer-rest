@@ -1,8 +1,7 @@
 repositories:
   -
     id: kosys-lite-ep01
+    title: "コウシス! LITE #1"
     protocol: gitlab
     namespace: kosys
     name: kosys-lite-ep01
-    title: "コウシス! LITE #1"
-    url: https://gitlab.com/kosys/kosys-lite-ep01.git
