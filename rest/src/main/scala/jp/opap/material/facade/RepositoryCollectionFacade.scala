@@ -34,7 +34,10 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
 
     // TODO: 警告の登録
     val (warnings, config) = loadRepositoryConfig(configuration)
-    warnings.foreach(w => LOG.info(w.message))
+    warnings.foreach(w => {
+      LOG.info(w.message)
+      w.caused.foreach(LOG.info)
+    })
     val repositories = config.repositories
       .flatMap(info => {
         val repositoryStore = new File(this.configuration.repositoryStore, info.id)
@@ -102,6 +105,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
   }
 
   def loadRepositoryConfig(configuration: AppConfiguration): (List[GlobalWarning], RepositoryConfig) = {
+    // TODO: リポジトリ ID のバリデーション。（重複排除とパターン）
     val mapper = new ObjectMapper(new YAMLFactory())
     try {
       val (warnings, repositories) = RepositoryConfig.fromYaml(new File(configuration.repositories)).leftRight

@@ -31,4 +31,10 @@ object Collections {
     def toSeq: Seq[T] = self.asScala.toSeq
     def toIterable: Iterable[T] = self.asScala
   }
+
+  implicit class EitherList[L, R](self: List[Either[L, R]]) {
+    def leftRight: (List[L], List[R]) = (this.left, this.right)
+    def left: List[L] = self.flatMap(element => element.left.toOption)
+    def right: List[R] = self.flatMap(element => element.right.toOption)
+  }
 }

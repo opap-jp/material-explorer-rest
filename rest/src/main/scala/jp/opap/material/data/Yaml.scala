@@ -11,31 +11,31 @@ import org.yaml.snakeyaml.{Yaml => SnakeYaml}
 import scala.collection.JavaConverters._
 
 object Yaml {
-  def parse(file: File): AnyRef = {
+  def parse(file: File): Any = {
     val yaml = new SnakeYaml()
     val root = yaml.load[Object](Files.newReader(file, Charsets.UTF_8))
     toNode(root)
   }
 
-  protected def toNode(data: Any): AnyRef = data match {
+  protected def toNode(data: Any): Any = data match {
     case map: java.util.Map[_, _] => MapNode(map.asScala.toMap.map(entry => (entry._1.toString, toNode(entry._2))))
     case list: java.util.List[_] => ListNode(list.asScala.toList.map(element => toNode(element)))
     case null => Unit
     case value: Date => LocalDateTime.ofInstant(value.toInstant, ZoneId.systemDefault())
-    case any: AnyRef => any
+    case any: Any => any
   }
 
-  case class MapNode(node: Map[String, AnyRef]) {
+  case class MapNode(node: Map[String, Any]) {
     def apply(key: String): Entry = Entry(key, this.node.get(key))
 
     override def toString: String = s"${this.getClass.getSimpleName} (${this.node.size})"
   }
-  case class ListNode(node: List[AnyRef]) {
+  case class ListNode(node: List[Any]) {
     override def toString: String = s"${this.getClass.getSimpleName} (${this.node.size})"
   }
 
-  case class Entry(key: String, value: Option[AnyRef]) {
-    def get: AnyRef = this.value match {
+  case class Entry(key: String, value: Option[Any]) {
+    def get: Any = this.value match {
       case Some(x) => x
       case None => throw EntryException(s"$key に要素がありません。")
     }
