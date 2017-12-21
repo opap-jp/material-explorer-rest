@@ -17,6 +17,12 @@ object Yaml {
     toNode(root)
   }
 
+  def parse(document: String): Any = {
+    val yaml = new SnakeYaml()
+    val root = yaml.load[Object](document)
+    toNode(root)
+  }
+
   protected def toNode(data: Any): Any = data match {
     case map: java.util.Map[_, _] => MapNode(map.asScala.toMap.map(entry => (entry._1.toString, toNode(entry._2))))
     case list: java.util.List[_] => ListNode(list.asScala.toList.map(element => toNode(element)))
