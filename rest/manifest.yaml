@@ -1,0 +1,16 @@
+tag_groups:
+    -
+      name: キャラクター
+      # items は、 { names: ... } というオブジェクトを要素とするリストです。
+      tags:
+        # names には「タグのエイリアスの集合」を指定する。単一の文字列か、文字列のリストです。
+        - names: [祝園アカネ, アカネ]
+        - names: 少佐
+        - names: 英賀保芽依
+    -
+      category: author
+      tags:
+        - names: [Butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
+        # generic_replacement は、複数の古いタグを別の名前で上書きして総称するときに使います。
+        - generic_replacement: 藻
+          names: 水雪

@@ -16,6 +16,10 @@ class AppConfiguration extends Configuration {
 
   @BeanProperty
   @NotEmpty
+  var manifest: String = ""
+
+  @BeanProperty
+  @NotEmpty
   var repositoryStore: String = ""
 
   @BeanProperty

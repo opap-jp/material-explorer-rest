@@ -2,7 +2,7 @@
 dbHost: localhost
 repositories: "./repositories.yaml"
 repositoryStore: "temp/repositories"
-# definition: "./definition.yaml"
+manifest: "./manifest.yaml"
 imageMagickHost: http://localhost:9090
 server:
   gzip:
