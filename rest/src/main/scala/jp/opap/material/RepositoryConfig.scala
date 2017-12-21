@@ -6,7 +6,6 @@ import java.util.UUID
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.data.Yaml
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
-import jp.opap.material.model.Warning
 import jp.opap.material.model.Warning.GlobalWarning
 
 case class RepositoryConfig(repositories: List[RepositoryInfo])

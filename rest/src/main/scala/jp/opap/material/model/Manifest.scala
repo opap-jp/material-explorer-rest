@@ -8,10 +8,15 @@ import jp.opap.material.model.Manifest.TagGroup
 case class Manifest(tagGroups: Seq[TagGroup])
 
 object Manifest {
-  case class TagGroup(category: TagCategory, tags: Seq[Tag])
-
-  case class TagCategory(name: String)
+  case class TagGroup(category: Category, name: String, tags: Seq[Tag])
 
   case class Tag(names: Seq[String], generic: Option[String])
+
+  sealed abstract class Category(val code: String)
+
+  object Category {
+    case object Common extends Category("common")
+    case object Author extends Category("author")
+  }
 }
 
