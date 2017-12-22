@@ -3,8 +3,6 @@ package jp.opap.material.facade
 import java.io.{File, IOException}
 import java.util.UUID
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
@@ -12,10 +10,9 @@ import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.ComponentEntry
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
-import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
+import jp.opap.material.model.Warning.ComponentWarning
 import jp.opap.material.{AppConfiguration, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
-import jp.opap.material.data.Collections.EitherList
 
 class RepositoryCollectionFacade(val configuration: AppConfiguration,
     val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
@@ -33,7 +30,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
 
     // TODO: 警告の登録
-    val (warnings, config) = loadRepositoryConfig(configuration)
+    val (warnings, config) = RepositoryConfig.fromYaml(new File(configuration.repositories))
     warnings.foreach(w => {
       LOG.info(w.message)
       w.caused.foreach(LOG.info)
@@ -102,19 +99,6 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
       })
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）のサムネイル生成が終了しました。")
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新が終了しました。")
-  }
-
-  def loadRepositoryConfig(configuration: AppConfiguration): (List[GlobalWarning], RepositoryConfig) = {
-    // TODO: リポジトリ ID のバリデーション。（重複排除とパターン）
-    val mapper = new ObjectMapper(new YAMLFactory())
-    try {
-      val (warnings, repositories) = RepositoryConfig.fromYaml(new File(configuration.repositories)).leftRight
-      (warnings, RepositoryConfig(repositories))
-    } catch {
-      case e: Exception =>
-        val warning = GlobalWarning(UUID.randomUUID(), "リポジトリ設定の取得に失敗しました。", Option(e.getMessage))
-        (List(warning),  RepositoryConfig(List()))
-    }
   }
 
   def intermediateTree(files: Seq[IntermediateFile]): IntermediateComponent = {
