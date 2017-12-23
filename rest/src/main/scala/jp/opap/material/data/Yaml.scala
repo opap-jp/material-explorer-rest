@@ -51,7 +51,7 @@ object Yaml {
 
     def string: String = this.value match {
       case Some(x: String) => x
-      case None => throw EntryException(s"$key に要素がありません。")
+      case None => throw EntryException(s"$key の値がありません。")
       case Some(x) => throw EntryException(s"$key => $x の値を文字列として取得することはできません。")
     }
   }
