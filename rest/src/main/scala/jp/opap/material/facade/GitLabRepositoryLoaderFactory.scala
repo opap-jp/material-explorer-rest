@@ -23,7 +23,7 @@ object GitLabRepositoryLoaderFactory extends RepositoryLoaderFactory {
   protected def create(repositoryInfo: GitlabRepositoryInfo, repositoryStore: File): RepositoryLoader = new RepositoryLoader {
     override val info: GitlabRepositoryInfo = repositoryInfo
 
-    val gitLab = new GitLabApi(ApiVersion.V4, "https://gitlab.com/", null: String)
+    val gitLab = new GitLabApi(ApiVersion.V4, repositoryInfo.host, null: String)
     val store: File = repositoryStore
     var projectId: Int = _
     var hashDictionary: Map[String, String] = _

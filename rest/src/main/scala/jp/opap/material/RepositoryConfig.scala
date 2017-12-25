@@ -12,12 +12,31 @@ import jp.opap.material.data.Collections.EitherList
 case class RepositoryConfig(repositories: List[RepositoryInfo])
 
 object RepositoryConfig {
+
+  /**
+    * 取得するリポジトリの情報を表現するクラスです。
+    */
   sealed trait RepositoryInfo {
+
+    /**
+      * システム内での、このリポジトリの識別子です。ファイル名として正しい文字列でなければなりません。
+      */
     val id: String
+
+    /**
+      * このリポジトリの名称です。ウェブページ上で表示されます。
+      */
     val title: String
   }
 
-  case class GitlabRepositoryInfo(id: String, title: String, namespace: String, name: String) extends RepositoryInfo
+  /**
+    * GitLab で取得可能なリポジトリの情報を表現するクラスです。
+    *
+    * @param host GitLab をホスティングしているサーバーの URL
+    * @param namespace GitLab リポジトリの namespace
+    * @param name GitLab リポジトリの name
+    */
+  case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 
   def fromYaml(file: File): (List[GlobalWarning], RepositoryConfig) = {
     def item(element: (Any, Int)): Either[GlobalWarning, RepositoryInfo] = {
@@ -25,7 +44,7 @@ object RepositoryConfig {
       try {
         node match {
           case item: MapNode => item("protocol").get match {
-            case "gitlab" => Right(GitlabRepositoryInfo(item("id").string, item("title").string, item("namespace").string, item("name").string))
+            case "gitlab" => Right(GitlabRepositoryInfo(item("id").string, item("title").string, item("host").string, item("namespace").string, item("name").string))
             case _ => throw EntryException("protocol が必要です。")
           }
           case _ => throw EntryException("要素の型が不正です。")
