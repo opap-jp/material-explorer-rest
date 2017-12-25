@@ -31,12 +31,14 @@ object Yaml {
     case any: Any => any
   }
 
-  case class MapNode(node: Map[String, Any]) {
+  sealed trait InternalNode
+
+  case class MapNode(node: Map[String, Any]) extends InternalNode {
     def apply(key: String): Entry = Entry(key, this.node.get(key))
 
     override def toString: String = s"${this.getClass.getSimpleName} (${this.node.size})"
   }
-  case class ListNode(node: List[Any]) {
+  case class ListNode(node: List[Any]) extends InternalNode {
     override def toString: String = s"${this.getClass.getSimpleName} (${this.node.size})"
   }
 
@@ -52,6 +54,12 @@ object Yaml {
     def string: String = this.value match {
       case Some(x: String) => x
       case None => throw EntryException(s"$key に要素がありません。")
+      case Some(x) => throw EntryException(s"$key => $x の値を文字列として取得することはできません。")
+    }
+
+    def stringOption: Option[String] = this.value match {
+      case Some(x: String) => Option(x)
+      case None => None
       case Some(x) => throw EntryException(s"$key => $x の値を文字列として取得することはできません。")
     }
   }
