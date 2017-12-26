@@ -7,7 +7,7 @@ import com.mongodb.MongoClient
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
-import jp.opap.material.dao.{MongoComponentDao, MongoItemDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.{RepositoryCollectionFacade, RepositoryDataEventEmitter}
@@ -33,12 +33,11 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val repositoryEventEmitter = new RepositoryDataEventEmitter()
 
     val repositoryDao = new MongoRepositoryDao(db)
-    val itemDao = new MongoItemDao(db)
     val componentDao = new MongoComponentDao(db)
     val thumbnailDao = new MongoThumbnailDao(db)
     val repositoryCollectionFacade = new RepositoryCollectionFacade(configuration, repositoryDao, componentDao, thumbnailDao, repositoryEventEmitter)
 
-    val rootResource = new RootResource(repositoryDao, itemDao, componentDao, thumbnailDao, repositoryEventEmitter)
+    val rootResource = new RootResource(repositoryDao, componentDao, thumbnailDao, repositoryEventEmitter)
 
     val pattern = "\\.([a-zA-Z0-9]+)$".r
     val server = environment.jersey()

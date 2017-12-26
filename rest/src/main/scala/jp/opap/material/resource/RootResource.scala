@@ -6,28 +6,18 @@ import javax.ws.rs.core.{MediaType, Response}
 import javax.ws.rs.{GET, Path, PathParam, Produces}
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jp.opap.material.dao.{MongoComponentDao, MongoItemDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.{Progress, ProgressListener, RepositoryDataEventEmitter}
 import org.glassfish.jersey.media.sse.{EventOutput, OutboundEvent, SseFeature}
 
 @Path("")
-class RootResource(val projectDao: MongoRepositoryDao, val itemDao: MongoItemDao, val componentDao: MongoComponentDao,
+class RootResource(val projectDao: MongoRepositoryDao, val componentDao: MongoComponentDao,
   val thumbnailDao: MongoThumbnailDao, val eventEmitter: RepositoryDataEventEmitter) {
   @GET
   @Path("/repositories")
   @Produces(Array(MediaType.APPLICATION_JSON))
   def repositories(): Response = {
     val items = this.projectDao.find()
-    val data = Map("items" -> items)
-    Response.ok(data).build()
-  }
-
-  @GET
-  @Path("/items")
-  @Produces(Array(MediaType.APPLICATION_JSON))
-  def items(): Response = {
-    val items = this.itemDao.findAll()
-      .sortBy(item => item.path)
     val data = Map("items" -> items)
     Response.ok(data).build()
   }
