@@ -7,7 +7,7 @@ import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
-import jp.opap.material.model.ComponentEntry
+import jp.opap.material.model.{ComponentEntry, Manifest}
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.model.Warning.ComponentWarning
@@ -28,14 +28,11 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     LOG.info("リポジトリ データの更新を開始しました。")
 
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
+    val manifest = Manifest.fromYaml(new File(configuration.manifest))
 
-    // TODO: 警告の登録
-    val (warnings, config) = RepositoryConfig.fromYaml(new File(configuration.repositories))
-    warnings.foreach(w => {
-      LOG.info(w.message)
-      w.caused.foreach(LOG.info)
-    })
-    val repositories = config.repositories
+    val config = RepositoryConfig.fromYaml(new File(configuration.repositories))
+
+    val repositories = config._2.repositories
       .flatMap(info => {
         val repositoryStore = new File(this.configuration.repositoryStore, info.id)
         this.loadersFactories.view.map(factory => factory.attemptCreate(info, repositoryStore))
@@ -43,6 +40,13 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
           .flatten
           .seq
       })
+
+    // TODO: 警告の登録
+    manifest._1.++(config._1).foreach(w => {
+      LOG.info(w.message)
+      w.caused.foreach(LOG.info)
+    })
+
     LOG.info("リポジトリ ローダーを生成しました。")
 
     repositories.foreach(updateRepository)

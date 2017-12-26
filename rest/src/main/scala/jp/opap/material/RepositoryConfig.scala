@@ -1,6 +1,6 @@
 package jp.opap.material
 
-import java.io.File
+import java.io.{File, IOException}
 import java.util.UUID
 
 import jp.opap.material.RepositoryConfig.RepositoryInfo
@@ -66,8 +66,8 @@ object RepositoryConfig {
 
       (warnings, RepositoryConfig(repositories))
     } catch {
-      case e: Exception =>
-        val warning = GlobalWarning(UUID.randomUUID(), "リポジトリ設定の取得に失敗しました。", Option(e.getMessage))
+      case e: IOException =>
+        val warning = GlobalWarning(UUID.randomUUID(), "リポジトリ設定ファイルの取得に失敗しました。", Option(e.getMessage))
         (List(warning),  RepositoryConfig(List()))
     }
   }

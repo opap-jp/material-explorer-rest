@@ -1,11 +1,13 @@
 package jp.opap.material.model
 
+import java.io.{File, IOException}
 import java.util.UUID
 
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
 import jp.opap.material.model.Manifest.TagGroup
 import jp.opap.material.model.Warning.GlobalWarning
 import jp.opap.material.data.Collections.EitherList
+import jp.opap.material.data.Yaml
 
 /**
   * メタデータで使用される識別子の宣言の集合です。
@@ -13,7 +15,20 @@ import jp.opap.material.data.Collections.EitherList
 case class Manifest(tagGroups: Seq[TagGroup])
 
 object Manifest {
-  def fromYaml(root: MapNode): (List[GlobalWarning], Manifest) = {
+  def fromYaml(file: File): (List[GlobalWarning], Manifest) = try {
+    Yaml.parse(file) match {
+      case root: MapNode => fromRoot(root)
+      case _ =>
+        val warning = new GlobalWarning(UUID.randomUUID(), "要素の型が不正です。")
+        (List(warning), Manifest(List()))
+    }
+  } catch {
+    case e: IOException =>
+      val warning = GlobalWarning(UUID.randomUUID(), "タグ定義ファイルの取得に失敗しました。", Option(e.getMessage))
+      (List(warning), Manifest(List()))
+  }
+
+  def fromRoot(root: MapNode): (List[GlobalWarning], Manifest) = {
     def tag(node: Any, groupIndex: Int, tagIndex: Int): Either[GlobalWarning, Tag] =
       try {
         node match {
@@ -21,10 +36,10 @@ object Manifest {
             val names = x("names").get match {
               case ListNode(y) => y.map {
                 case z: String => z
-                case _ => throw EntryException(s"tag_groups[$groupIndex].tags[$tagIndex]: 文字列が必要です。")
+                case z => throw EntryException(s"文字列が必要です。（$z でした。）")
               }
               case y: String => List(y)
-              case _ => throw EntryException(s"tag_groups[$groupIndex].tags[$tagIndex]: 文字列が必要です。")
+              case y => throw EntryException(s"文字列が必要です。（$y でした。）")
             }
             Right(Tag(names, x("generic_replacement").stringOption))
           case _ => Left(new GlobalWarning(UUID.randomUUID(), s"tag_groups[$groupIndex].tags[$tagIndex]: names が必要です。"))
@@ -98,7 +113,7 @@ object Manifest {
     }
 
     case object Common extends Category("common", None, false)
-    case object Author extends Category("author", Option("author"), true)
+    case object Author extends Category("author", Option("作成者"), true)
   }
 }
 
