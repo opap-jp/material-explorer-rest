@@ -49,7 +49,6 @@ object Yaml {
     }
 
     def option: Option[Entry] = this.value.map(v => this.copy(value = Option(v)))
-    // def option: Option[AnyRef] = this.value
 
     def string: String = this.value match {
       case Some(x: String) => x
