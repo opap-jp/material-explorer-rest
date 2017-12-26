@@ -14,23 +14,23 @@ case class Manifest(tagGroups: Seq[TagGroup])
 
 object Manifest {
   def fromYaml(root: MapNode): (List[GlobalWarning], Manifest) = {
-    def tag(node: Any): Either[GlobalWarning, Tag] =
+    def tag(node: Any, groupIndex: Int, tagIndex: Int): Either[GlobalWarning, Tag] =
       try {
         node match {
           case x: MapNode =>
             val names = x("names").get match {
               case ListNode(y) => y.map {
                 case z: String => z
-                case _ => throw EntryException("文字列が必要です。")
+                case _ => throw EntryException(s"tag_groups[$groupIndex].tags[$tagIndex]: 文字列が必要です。")
               }
               case y: String => List(y)
-              case _ => throw EntryException("文字列が必要です。")
+              case _ => throw EntryException(s"tag_groups[$groupIndex].tags[$tagIndex]: 文字列が必要です。")
             }
             Right(Tag(names, x("generic_replacement").stringOption))
-          case _ => Left(new GlobalWarning(UUID.randomUUID(), "names が必要です。"))
+          case _ => Left(new GlobalWarning(UUID.randomUUID(), s"tag_groups[$groupIndex].tags[$tagIndex]: names が必要です。"))
         }
       } catch {
-        case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), e.message))
+        case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), s"tag_groups[$groupIndex].tags[$tagIndex]: ${e.message}"))
       }
     def tagGroup(element: (Any, Int)): (List[GlobalWarning], Option[TagGroup]) = {
       val (node, i) = element
@@ -40,7 +40,7 @@ object Manifest {
             val category = item("category").stringOption
               .map(v => Category.parse(v) match {
                 case Some(value) => value
-                case None => throw EntryException(s"$v: そのようなカテゴリはありません。")
+                case None => throw EntryException(s"$v - そのようなカテゴリはありません。")
               }).getOrElse(Category.Common)
 
             val name = item("name").stringOption.getOrElse(category.defaultName match {
@@ -49,7 +49,7 @@ object Manifest {
             })
 
             val tags = item("tags").value match {
-              case Some(ListNode(x)) => x.map(tag)
+              case Some(ListNode(x)) => x.zipWithIndex.map(y => tag(y._1, i, y._2))
               case _ => throw EntryException("tags が必要です。")
             }
             (tags.left, Option(TagGroup(category, name, tags.right)))
