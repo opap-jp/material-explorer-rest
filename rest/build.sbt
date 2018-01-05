@@ -23,6 +23,10 @@ libraryDependencies ++= Seq(
   "org.yaml" % "snakeyaml" % "1.19",
 )
 
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+)
+
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 initialCommands := "import jp.opap.material._"
 
