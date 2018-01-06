@@ -9,6 +9,8 @@ import jp.opap.material.model.Warning.GlobalWarning
 import jp.opap.material.data.Collections.EitherList
 import jp.opap.material.data.Yaml
 
+import scala.util.matching.Regex
+
 /**
   * メタデータで使用される識別子の宣言の集合です。
   */
@@ -41,7 +43,7 @@ object Manifest {
               case y: String => List(y)
               case y => throw EntryException(s"文字列が必要です。（$y でした。）")
             }
-            Right(Tag(names, x("generic_replacement").stringOption))
+            Right(Tag.create(names, x("generic_replacement").stringOption))
           case _ => Left(new GlobalWarning(UUID.randomUUID(), s"tag_groups[$groupIndex].tags[$tagIndex]: names が必要です。"))
         }
       } catch {
@@ -94,7 +96,22 @@ object Manifest {
 
   case class TagGroup(category: Category, name: String, tags: Seq[Tag])
 
-  case class Tag(names: Seq[String], generic: Option[String])
+  case class Tag(names: List[TagName], generic: Option[TagName])
+
+  object Tag {
+    def create(names: List[String], generic: Option[String]): Tag = {
+      Tag(names.map(TagName), generic.map(TagName))
+    }
+  }
+
+  case class TagName(name: String) {
+    lazy val normalized: String = normalize(name)
+
+    override def equals(obj: Any): Boolean = obj match {
+      case t: TagName => this.normalized == t.normalized
+      case _ => false
+    }
+  }
 
   /**
     * タグのカテゴリを表現します。
@@ -114,6 +131,43 @@ object Manifest {
 
     case object Common extends Category("common", None, false)
     case object Author extends Category("author", Option("作成者"), true)
+  }
+
+  val SPACES: Regex = "[ 　]".r
+
+  /**
+    * 文字列を、タグの内部表現として正規化します。
+    *
+    * @param target 正規化の対象
+    * @return 正規化された文字列
+    */
+  def normalize(target: String): String = {
+    /**
+      * 全角英数を半角英数に変換します。
+      */
+    def singleByte(character: Char): Char = {
+      val c = character.toInt
+      if ((c >= '０' && c <= '９') || (c >= 'Ａ' && c <= 'Ｚ') || (c >= 'ａ' && c <= 'ｚ'))
+        (c  - 0xFEE0).toChar
+      else
+        character
+    }
+
+    /**
+      * カタカナをひらがなに変換します。
+      */
+    def kana(character: Char): Char = {
+      val c = character.toInt
+      if (c >= 'ァ' && c <= 'ン')
+        (c - 96).toChar
+      else
+        character
+    }
+
+    SPACES.replaceAllIn(target, "")
+      .map(singleByte)
+      .map(kana)
+      .toLowerCase
   }
 }
 
