@@ -1,0 +1,8 @@
+tag_groups:
+    -
+      tags:
+        - names: [祝園アカネ]
+    -
+      category: foo
+      tags:
+        - names: [山家宏佳]

@@ -2,6 +2,7 @@ package jp.opap.material.data
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.immutable.TreeMap
 
 object Collections {
   /**
@@ -30,6 +31,25 @@ object Collections {
   implicit class Iterables[T](self: java.lang.Iterable[T]) {
     def toSeq: Seq[T] = self.asScala.toSeq
     def toIterable: Iterable[T] = self.asScala
+  }
+
+  implicit class Seqs[T](self: Seq[T]) {
+    def groupByOrdered[P](f: T => P): Seq[(P, Seq[T])] = {
+      val groups = self.groupBy(f)
+      @tailrec
+      def accumulate(a: List[(P, Seq[T])], done: Set[P], items: List[T]): List[(P, Seq[T])] = {
+        items match {
+          case head :: tail =>
+            val key = f(head)
+            if (done.contains(key))
+              accumulate(a, done, tail)
+            else
+              accumulate((key, groups(key)) :: a, done + key, tail)
+          case Nil => a
+        }
+      }
+      accumulate(List(), Set(), self.toList).reverse
+    }
   }
 
   implicit class EitherList[L, R](self: List[Either[L, R]]) {

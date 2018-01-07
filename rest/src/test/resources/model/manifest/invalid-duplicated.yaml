@@ -1,0 +1,15 @@
+tag_groups:
+    -
+      name: キャラクター
+      tags:
+        - names: [祝園アカネ, アカネ, 井二かける]
+        - names: 藻
+        - names: 祝園アカネ
+    -
+      category: author
+      tags:
+        - names: Butameron
+        - names: [butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
+        - generic_replacement: 藻
+          names: 水雪
+

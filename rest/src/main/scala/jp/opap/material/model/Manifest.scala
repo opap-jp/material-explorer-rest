@@ -3,11 +3,11 @@ package jp.opap.material.model
 import java.io.{File, IOException}
 import java.util.UUID
 
+import jp.opap.material.data.Collections.{EitherList, Seqs}
+import jp.opap.material.data.Yaml
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
 import jp.opap.material.model.Manifest.TagGroup
 import jp.opap.material.model.Warning.GlobalWarning
-import jp.opap.material.data.Collections.EitherList
-import jp.opap.material.data.Yaml
 
 import scala.util.matching.Regex
 
@@ -78,6 +78,27 @@ object Manifest {
       }
     }
 
+    def validate(warnings: List[GlobalWarning], manifest: Manifest): (List[GlobalWarning], Manifest) = {
+      val duplications = manifest.tagGroups.flatMap(group => group.tags)
+        .flatMap(tag => tag.names ++ tag.generic)
+        .groupByOrdered(name => name.normalized)
+        .filter(entry => entry._2.size > 1)
+      val duplicatedNames = duplications.map(_._1).toSet
+      val duplicationDictionary = duplications.toMap
+
+      val m = manifest.copy(tagGroups = manifest.tagGroups.map(group => {
+        group.copy(tags = group.tags
+          .map(tag => {
+            tag.copy(names = tag.names.filter(n => !duplicatedNames.contains(n.normalized)),
+              generic = tag.generic.filter(n => !duplicatedNames.contains(n.normalized)))
+          }).filter(tag => tag.names.nonEmpty || tag.generic.nonEmpty)
+        )
+      }))
+
+      val w = duplicatedNames.map(n => new GlobalWarning(UUID.randomUUID(), s"${duplicationDictionary(n).head.name} - このラベルは重複しています。"))
+      (warnings ++ w, m)
+    }
+
     try {
       val (warnings, groups) = root("tag_groups").get match {
         case ListNode(node) =>
@@ -85,7 +106,7 @@ object Manifest {
           (x.flatMap(y => y._1), x.flatMap(y => y._2))
         case _ => List(Left[GlobalWarning, TagGroup](new GlobalWarning(UUID.randomUUID(), "tag_groups が必要です。"))).leftRight
       }
-      (warnings, Manifest(groups))
+      validate(warnings, Manifest(groups))
     } catch {
       case e: EntryException =>
         val warnings = List(new GlobalWarning(UUID.randomUUID(), e.message))
