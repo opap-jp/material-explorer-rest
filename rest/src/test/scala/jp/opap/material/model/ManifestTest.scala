@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import java.io.File
 
-import jp.opap.material.model.Manifest.{Category, Tag, TagGroup, TagName}
+import jp.opap.material.model.Manifest.{Category, Tag, TagGroup}
 import org.scalatest.FunSpec
 
 import scala.collection.SortedMap

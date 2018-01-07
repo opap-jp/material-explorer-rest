@@ -1,13 +1,13 @@
-package jp.opap.material
+package jp.opap.material.model
 
 import java.io.{File, IOException}
 import java.util.UUID
 
-import jp.opap.material.RepositoryConfig.RepositoryInfo
+import jp.opap.material.data.Collections.EitherList
 import jp.opap.material.data.Yaml
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
+import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.GlobalWarning
-import jp.opap.material.data.Collections.EitherList
 
 case class RepositoryConfig(repositories: List[RepositoryInfo])
 

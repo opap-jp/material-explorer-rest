@@ -2,10 +2,10 @@ package jp.opap.material.facade
 
 import java.io.File
 
-import jp.opap.material.RepositoryConfig.RepositoryInfo
 import jp.opap.material.facade.RepositoryLoader.ChangedResult
 import jp.opap.material.model.Components.IntermediateFile
 import jp.opap.material.model.Repository
+import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 
 trait RepositoryLoader {
   val info: RepositoryInfo

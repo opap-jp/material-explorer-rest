@@ -4,10 +4,10 @@ import java.io.File
 import java.nio.file.Files
 import java.util.UUID
 
-import jp.opap.material.RepositoryConfig.{GitlabRepositoryInfo, RepositoryInfo}
 import jp.opap.material.facade.RepositoryLoader.{ChangedResult, RepositoryLoaderFactory}
 import jp.opap.material.model.Components.IntermediateFile
 import jp.opap.material.model.Repository
+import jp.opap.material.model.RepositoryConfig.{GitlabRepositoryInfo, RepositoryInfo}
 import org.gitlab4j.api.GitLabApi
 import org.gitlab4j.api.GitLabApi.ApiVersion
 import org.gitlab4j.api.models.TreeItem
