@@ -1,0 +1,36 @@
+repositories:
+  -
+    id: kosys-ep03
+    title: "こうしす! #3"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep03
+  -
+    id: kosys-ep01
+    title: "こうしす! #1"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep01
+  -
+    id: kosys-ep02
+    title: "こうしす! #2"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep02
+  -
+    id: Kosys-ep02
+    title: "こうしす! #2"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep02
+  -
+    id: kosys-ep03
+    title: "こうしす! #3"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep03

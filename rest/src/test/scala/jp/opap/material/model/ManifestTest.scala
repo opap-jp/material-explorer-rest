@@ -1,16 +1,13 @@
 package jp.opap.material.model
 
-import java.io.File
-
+import jp.opap.material.Tests
 import jp.opap.material.model.Manifest.{Category, Tag, TagGroup}
 import org.scalatest.FunSpec
 
-import scala.collection.SortedMap
-
 class ManifestTest extends FunSpec {
   describe("fromYaml") {
-    it("正常なタグ宣言") {
-      val file = ManifestTest.getResourceFile("model/manifest/valid.yaml")
+    it("妥当なタグ宣言") {
+      val file = Tests.getResourceFile("model/manifest/valid.yaml")
       val actual = Manifest.fromYaml(file)
       val expected = (List(), Manifest(
         List(
@@ -27,12 +24,11 @@ class ManifestTest extends FunSpec {
         )
       ))
 
-      SortedMap(2 -> "foo", 1 -> "foo")
       assert(actual == expected)
     }
 
     it("同じタグ名があるとき、そのタグ名はタグ宣言全体から消去される") {
-      val file = ManifestTest.getResourceFile("model/manifest/invalid-duplicated.yaml")
+      val file = Tests.getResourceFile("model/manifest/invalid-duplicated.yaml")
       val actual = Manifest.fromYaml(file)
       val expectedManifest = Manifest(
         List(
@@ -55,7 +51,7 @@ class ManifestTest extends FunSpec {
     }
 
     it("不正なカテゴリのタググループは、タグ宣言から消去される") {
-      val file = ManifestTest.getResourceFile("model/manifest/invalid-category.yaml")
+      val file = Tests.getResourceFile("model/manifest/invalid-category.yaml")
       val actual = Manifest.fromYaml(file)
 
       assert(actual._1.head.message == "tag_groups[0]: name が必要です。")
@@ -64,7 +60,7 @@ class ManifestTest extends FunSpec {
     }
 
     it("タグ名のリストが空のとき、その項目は無視される") {
-      val file = ManifestTest.getResourceFile("model/manifest/invalid-empty.yaml")
+      val file = Tests.getResourceFile("model/manifest/invalid-empty.yaml")
       val actual = Manifest.fromYaml(file)
 
       val expected = (List(), Manifest(
@@ -93,8 +89,4 @@ class ManifestTest extends FunSpec {
       assert(actual == "祝園あかね")
     }
   }
-}
-
-object ManifestTest {
-  def getResourceFile(path: String): File = new File(ClassLoader.getSystemResource(path).toURI)
 }

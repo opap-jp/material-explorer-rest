@@ -1,0 +1,8 @@
+repositories:
+  -
+    id: "kosys\nkosys-ep01"
+    title: "こうしす! #1"
+    protocol: gitlab
+    host: https://gitlab.com
+    namespace: kosys
+    name: kosys-ep01
