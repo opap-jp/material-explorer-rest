@@ -8,29 +8,29 @@
     "url": "git://github.com/opap-jp/material-explorer.git"
   },
   "dependencies": {
-    "@types/jquery": "^3.2.1",
-    "expose-loader": "^0.7.3",
-    "jquery": "^3.2.1",
+    "@types/jquery": "^3.2.18",
+    "expose-loader": "^0.7.4",
+    "jquery": "^3.3.1",
     "js-joda": "^1.5.2",
-    "typescript-optional": "^1.2.1"
+    "typescript-optional": "^1.5.0"
   },
   "devDependencies": {
-    "awesome-typescript-loader": "^3.2.1",
-    "css-loader": "^0.28.4",
+    "awesome-typescript-loader": "^3.4.1",
+    "css-loader": "^0.28.9",
     "gulp": "^3.9.1",
     "gulp-base64": "^0.1.3",
     "gulp-base64-webfont-css": "0.0.1",
     "gulp-concat-css": "^2.3.0",
     "gulp-sass": "^3.1.0",
     "gulp-webserver": "^0.9.1",
-    "node-sass": "^4.5.3",
+    "node-sass": "^4.7.2",
     "rimraf": "^2.6.2",
-    "run-sequence": "^2.0.0",
+    "run-sequence": "^2.2.1",
     "sass-loader": "^6.0.6",
     "source-map-loader": "^0.2.1",
     "style-loader": "^0.18.2",
-    "typescript": "^2.4.1",
-    "webpack": "^3.0.0"
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0"
   },
   "scripts": {
     "build": "npm run clean && gulp build",
