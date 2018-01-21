@@ -17,6 +17,7 @@ services:
     - "8080:8080"
     volumes:
     - ./temp/log/material-explorer:/var/log/material-explorer
+    - ./temp/repositories:/tmp/material-explorer/temp/repositories
   # データベース
   db:
     image: mongo:3.4.9

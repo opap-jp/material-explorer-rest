@@ -1,7 +1,8 @@
 # REST サーバーを Docker コンテナとして起動する場合の設定です
 dbHost: db
-repositories: "./projects.yaml"
+repositories: "./repositories.yaml"
 repositoryStore: "temp/repositories"
+manifest: "./manifest.yaml"
 imageMagickHost: http://im:9090
 server:
   gzip:
