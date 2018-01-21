@@ -17,12 +17,6 @@ import scala.util.matching.Regex
 case class Manifest(tagGroups: Seq[TagGroup])
 
 object Manifest {
-  @deprecated
-  def fromYaml(document: String): (List[GlobalWarning], Manifest) = fromYaml(Yaml.parse(document))
-
-  @deprecated
-  def fromYaml(file: File): (List[GlobalWarning], Manifest) = fromYaml(Yaml.parse(file))
-
   def fromYaml(document: Any): (List[GlobalWarning], Manifest) = try {
     document match {
       case root: MapNode => fromRoot(root)

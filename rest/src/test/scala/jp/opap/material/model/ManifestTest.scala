@@ -61,8 +61,8 @@ class ManifestTest extends FunSpec {
     }
 
     it("タグ名のリストが空のとき、その項目は無視される") {
-      val data = Tests.getResource("model/manifest/invalid-empty.yaml")
-      val actual = Manifest.fromYaml(new String(data))
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-empty.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
 
       val expected = (List(), Manifest(
         List(

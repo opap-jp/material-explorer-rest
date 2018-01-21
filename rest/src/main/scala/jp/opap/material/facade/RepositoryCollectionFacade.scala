@@ -1,10 +1,11 @@
 package jp.opap.material.facade
 
-import java.io.{File, IOException}
+import java.io.{File, IOException, InputStream}
 import java.util.UUID
 
 import jp.opap.material.AppConfiguration
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.data.Yaml
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
@@ -28,9 +29,9 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     LOG.info("リポジトリ データの更新を開始しました。")
 
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
-    val manifest = Manifest.fromYaml(new File(configuration.manifest))
+    val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)))
 
-    val config = RepositoryConfig.fromYaml(new File(configuration.repositories))
+    val config = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
 
     val repositories = config._2.repositories
       .flatMap(info => {
@@ -159,12 +160,11 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
             this.thumbnailDao.insert(thumb, file)
             LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
           } catch {
-            case e: IOException => {
+            case e: IOException =>
               val warning = ComponentWarning(UUID.randomUUID(), s"${loader.info.id} - ${file.path} のサムネイルの生成に失敗しました。",
                 Option(e.getMessage), file.repositoryId, file.path)
               // TODO: 警告の登録（現在はログ出力）
               LOG.info(warning.message)
-            }
           }
         }
       })

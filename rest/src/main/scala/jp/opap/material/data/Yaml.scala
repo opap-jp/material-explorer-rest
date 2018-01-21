@@ -11,10 +11,7 @@ import org.yaml.snakeyaml.{Yaml => SnakeYaml}
 import scala.collection.JavaConverters._
 
 object Yaml {
-  @deprecated
   def parse(file: File): Any = _parse(yaml => yaml.load[Object](Files.newReader(file, Charsets.UTF_8)))
-
-  def parse(document: String): Any = _parse(yaml => yaml.load[Object](document))
 
   def parse(stream: InputStream): Any = _parse(yaml => yaml.load[Object](stream))
 

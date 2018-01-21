@@ -45,16 +45,6 @@ object RepositoryConfig {
     */
   case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 
-  @deprecated
-  def fromYaml(document: String): (List[GlobalWarning], RepositoryConfig) = {
-    fromYaml(Yaml.parse(document))
-  }
-
-  @deprecated
-  def fromYaml(file: File): (List[GlobalWarning], RepositoryConfig) = {
-    fromYaml(Yaml.parse(file))
-  }
-
   def fromYaml(document: Any): (List[GlobalWarning], RepositoryConfig) = {
     def item(element: (Any, Int)): Either[GlobalWarning, RepositoryInfo] = {
       val (node, i) = element
