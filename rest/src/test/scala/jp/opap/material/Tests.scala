@@ -1,7 +1,15 @@
 package jp.opap.material
 
-import java.io.File
+import java.io.InputStream
+
+import com.google.common.io.ByteStreams
 
 object Tests {
-  def getResourceFile(path: String): File = new File(ClassLoader.getSystemResource(path).toURI)
+  def getResource(path: String): Array[Byte] = {
+    ByteStreams.toByteArray(this.getClass.getClassLoader.getResourceAsStream(path))
+  }
+
+  def getResourceAsStrean(path: String): InputStream = {
+    this.getClass.getClassLoader.getResourceAsStream(path)
+  }
 }

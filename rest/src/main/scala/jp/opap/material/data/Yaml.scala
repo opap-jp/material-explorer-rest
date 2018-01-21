@@ -1,6 +1,6 @@
 package jp.opap.material.data
 
-import java.io.File
+import java.io.{File, InputStream}
 import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
@@ -11,15 +11,16 @@ import org.yaml.snakeyaml.{Yaml => SnakeYaml}
 import scala.collection.JavaConverters._
 
 object Yaml {
-  def parse(file: File): Any = {
-    val yaml = new SnakeYaml()
-    val root = yaml.load[Object](Files.newReader(file, Charsets.UTF_8))
-    toNode(root)
-  }
+  @deprecated
+  def parse(file: File): Any = _parse(yaml => yaml.load[Object](Files.newReader(file, Charsets.UTF_8)))
 
-  def parse(document: String): Any = {
+  def parse(document: String): Any = _parse(yaml => yaml.load[Object](document))
+
+  def parse(stream: InputStream): Any = _parse(yaml => yaml.load[Object](stream))
+
+  protected def _parse(converter: SnakeYaml => Any): Any = {
     val yaml = new SnakeYaml()
-    val root = yaml.load[Object](document)
+    val root = converter(yaml)
     toNode(root)
   }
 

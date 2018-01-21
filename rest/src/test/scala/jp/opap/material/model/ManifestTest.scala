@@ -1,14 +1,15 @@
 package jp.opap.material.model
 
 import jp.opap.material.Tests
+import jp.opap.material.data.Yaml
 import jp.opap.material.model.Manifest.{Category, Tag, TagGroup}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
   describe("fromYaml") {
     it("妥当なタグ宣言") {
-      val file = Tests.getResourceFile("model/manifest/valid.yaml")
-      val actual = Manifest.fromYaml(file)
+      val data = Tests.getResourceAsStrean("model/manifest/valid.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
       val expected = (List(), Manifest(
         List(
           TagGroup(Category.Common, "キャラクター", List(
@@ -28,8 +29,8 @@ class ManifestTest extends FunSpec {
     }
 
     it("同じタグ名があるとき、そのタグ名はタグ宣言全体から消去される") {
-      val file = Tests.getResourceFile("model/manifest/invalid-duplicated.yaml")
-      val actual = Manifest.fromYaml(file)
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-duplicated.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
       val expectedManifest = Manifest(
         List(
           TagGroup(Category.Common, "キャラクター", List(
@@ -51,8 +52,8 @@ class ManifestTest extends FunSpec {
     }
 
     it("不正なカテゴリのタググループは、タグ宣言から消去される") {
-      val file = Tests.getResourceFile("model/manifest/invalid-category.yaml")
-      val actual = Manifest.fromYaml(file)
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
 
       assert(actual._1.head.message == "tag_groups[0]: name が必要です。")
       assert(actual._1(1).message == "tag_groups[1]: foo - そのようなカテゴリはありません。")
@@ -60,8 +61,8 @@ class ManifestTest extends FunSpec {
     }
 
     it("タグ名のリストが空のとき、その項目は無視される") {
-      val file = Tests.getResourceFile("model/manifest/invalid-empty.yaml")
-      val actual = Manifest.fromYaml(file)
+      val data = Tests.getResource("model/manifest/invalid-empty.yaml")
+      val actual = Manifest.fromYaml(new String(data))
 
       val expected = (List(), Manifest(
         List(

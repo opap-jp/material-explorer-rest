@@ -45,7 +45,17 @@ object RepositoryConfig {
     */
   case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 
+  @deprecated
+  def fromYaml(document: String): (List[GlobalWarning], RepositoryConfig) = {
+    fromYaml(Yaml.parse(document))
+  }
+
+  @deprecated
   def fromYaml(file: File): (List[GlobalWarning], RepositoryConfig) = {
+    fromYaml(Yaml.parse(file))
+  }
+
+  def fromYaml(document: Any): (List[GlobalWarning], RepositoryConfig) = {
     def item(element: (Any, Int)): Either[GlobalWarning, RepositoryInfo] = {
       val (node, i) = element
       try {
@@ -77,7 +87,7 @@ object RepositoryConfig {
     }
 
     try {
-      val (warnings, repositories) = (Yaml.parse(file) match {
+      val (warnings, repositories) = (document match {
         case MapNode(root) => root.get("repositories") match {
           case Some(ListNode(items)) => items.zipWithIndex.map(item)
           case _ => List(Left(new GlobalWarning(UUID.randomUUID(), "repositories が必要です。")))
@@ -92,4 +102,5 @@ object RepositoryConfig {
         (List(warning),  RepositoryConfig(List()))
     }
   }
+
 }
