@@ -35,6 +35,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
 
     val repositories = config._2.repositories
       .flatMap(info => {
+        // TODO: リポジトリ用ストレージの名称のサニタイズ（idにハッシュ値をつける）
         val repositoryStore = new File(this.configuration.repositoryStore, info.id)
         this.loadersFactories.view.map(factory => factory.attemptCreate(info, repositoryStore))
           .find(loader => loader.isDefined)
