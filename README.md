@@ -1,4 +1,7 @@
 # Material Explorer
+
+[![Build Status](https://travis-ci.org/opap-jp/material-explorer.svg)](https://travis-ci.org/opap-jp/material-explorer)
+
 素材検索システム（仮称）
 
 ## アプリケーションの構成
