@@ -1,8 +1,19 @@
-language: scala
-scala:
-- 2.11.2
-sudo: required
-services:
-- docker
-script:
-- docker-compose -f ./docker-compose.test.yaml build
+matrix:
+  include:
+    -
+      language: scala
+      scala:
+        - 2.11.2
+      sudo: required
+      services:
+        - docker
+      script:
+        - docker-compose -f ./docker-compose.test.yaml build
+    -
+      language: scala
+      scala:
+        - 2.11.2
+      before_script:
+        - cd rest
+      script:
+        - sbt test
