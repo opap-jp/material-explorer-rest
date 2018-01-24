@@ -6,14 +6,14 @@ services:
   db:
     image: mongo:3.4.9
     ports:
-    - 27017:27017
+      - 27017:27017
     volumes:
-    - data-volume:/data/db
+      - data-volume:/data/db
   # ImageMagick
   im:
     build:
       context: im
     ports:
-    - 9090:9090
+      - 9090:9090
 volumes:
   data-volume:
