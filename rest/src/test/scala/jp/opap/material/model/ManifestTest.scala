@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import jp.opap.material.Tests
 import jp.opap.material.data.Yaml
-import jp.opap.material.model.Manifest.{Category, Tag, TagGroup}
+import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
@@ -22,7 +22,7 @@ class ManifestTest extends FunSpec {
             Tag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
             Tag.create(List("水雪"), Option("藻")),
           )),
-        )
+        ), List(Selector(Inclusive, ExtensionSetPredicate("psd,ai,png,jpg,jpeg,pdf,wav,flac,mp3,blender".split(","))))
       ))
 
       assert(actual == expected)
@@ -40,7 +40,7 @@ class ManifestTest extends FunSpec {
             Tag.create(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None),
             Tag.create(List("水雪"), None),
           )),
-        )
+        ), List()
       )
 
       assert(actual._1.head.message == "祝園アカネ - このラベルは重複しています。")
@@ -57,7 +57,7 @@ class ManifestTest extends FunSpec {
 
       assert(actual._1.head.message == "tag_groups[0]: name が必要です。")
       assert(actual._1(1).message == "tag_groups[1]: foo - そのようなカテゴリはありません。")
-      assert(actual._2 == Manifest(List()))
+      assert(actual._2 == Manifest(List(), List()))
     }
 
     it("タグ名のリストが空のとき、その項目は無視される") {
@@ -67,10 +67,35 @@ class ManifestTest extends FunSpec {
       val expected = (List(), Manifest(
         List(
           TagGroup(Category.Common, "キャラクター", List())
-        )
+        ),
+        List()
       ))
 
       assert(actual == expected)
+    }
+
+    it("tag_groups がないとき、警告が出力される") {
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-tag-groups.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
+
+      assert(actual._1.head.message == "tag_groups が必要です。")
+      assert(actual._2 == Manifest(List(), List()))
+    }
+
+    it("selectors がないとき、警告が出力される") {
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-selectors.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
+
+      assert(actual._1.head.message == "selectors が必要です。")
+      assert(actual._2 == Manifest(List(), List()))
+    }
+
+    it("ファイルセレクタに include も exclude もないとき、警告が出力される") {
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-selector.yaml")
+      val actual = Manifest.fromYaml(Yaml.parse(data))
+
+      assert(actual._1.head.message == "selectors[0]: include または exclude が必要です。")
+      assert(actual._2 == Manifest(List(), List()))
     }
   }
 

@@ -14,3 +14,7 @@ tag_groups:
       # generic_replacement は、複数の古いタグを別の名前で上書きして総称するときに使います。
       - generic_replacement: 藻
         names: 水雪
+# 検索対象となるファイルの形式
+selectors:
+  - include:
+      extensions: [psd, ai, png, jpg, jpeg, pdf, wav, flac, mp3, blender]

@@ -1,12 +1,11 @@
 package jp.opap.material.model
 
-import java.io.{File, IOException}
+import java.io.IOException
 import java.util.UUID
 
 import jp.opap.material.data.Collections.{EitherList, Seqs}
-import jp.opap.material.data.Yaml
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
-import jp.opap.material.model.Manifest.TagGroup
+import jp.opap.material.model.Manifest.{Selector, TagGroup}
 import jp.opap.material.model.Warning.GlobalWarning
 
 import scala.util.matching.Regex
@@ -14,24 +13,25 @@ import scala.util.matching.Regex
 /**
   * メタデータで使用される識別子の宣言の集合です。
   */
-case class Manifest(tagGroups: Seq[TagGroup])
+case class Manifest(tagGroups: Seq[TagGroup], selectors: Seq[Selector])
 
 object Manifest {
+  // FIXME: 引き数の型が Any となっていて、事実上の実行時型エラーを生じやすいです。
   def fromYaml(document: Any): (List[GlobalWarning], Manifest) = try {
     document match {
       case root: MapNode => fromRoot(root)
       case _ =>
         val warning = new GlobalWarning(UUID.randomUUID(), "要素の型が不正です。")
-        (List(warning), Manifest(List()))
+        (List(warning), Manifest(List(), List()))
     }
   } catch {
     case e: IOException =>
       val warning = GlobalWarning(UUID.randomUUID(), "タグ定義ファイルの取得に失敗しました。", Option(e.getMessage))
-      (List(warning), Manifest(List()))
+      (List(warning), Manifest(List(), List()))
   }
 
   def fromRoot(root: MapNode): (List[GlobalWarning], Manifest) = {
-    def tag(node: Any, groupIndex: Int, tagIndex: Int): Either[GlobalWarning, Tag] =
+    def extractTag(node: Any, groupIndex: Int, tagIndex: Int): Either[GlobalWarning, Tag] =
       try {
         node match {
           case x: MapNode =>
@@ -49,7 +49,8 @@ object Manifest {
       } catch {
         case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), s"tag_groups[$groupIndex].tags[$tagIndex]: ${e.message}"))
       }
-    def tagGroup(element: (Any, Int)): (List[GlobalWarning], Option[TagGroup]) = {
+
+    def extractTagGroup(element: (Any, Int)): (List[GlobalWarning], Option[TagGroup]) = {
       val (node, i) = element
       try {
         node match {
@@ -66,7 +67,7 @@ object Manifest {
             })
 
             val tags = item("tags").value match {
-              case Some(ListNode(x)) => x.zipWithIndex.map(y => tag(y._1, i, y._2))
+              case Some(ListNode(x)) => x.zipWithIndex.map(y => extractTag(y._1, i, y._2))
               case _ => throw EntryException("tags が必要です。")
             }
             (tags.left, Option(TagGroup(category, name, tags.right)))
@@ -75,6 +76,50 @@ object Manifest {
         case e: EntryException =>
           val warning = new GlobalWarning(UUID.randomUUID(), s"tag_groups[$i]: ${e.message}")
           (List(warning), None)
+      }
+    }
+
+    def extractTagGroups(root: MapNode): (List[GlobalWarning], Seq[TagGroup]) = {
+      root("tag_groups").get match {
+        case ListNode(node) =>
+          val x = node.zipWithIndex.map(extractTagGroup)
+          (x.flatMap(y => y._1), x.flatMap(y => y._2))
+        case _ =>
+          // tag_groups の型が不正だったときのケース
+          List(Left[GlobalWarning, TagGroup](new GlobalWarning(UUID.randomUUID(), "tag_groups が必要です。"))).leftRight
+      }
+    }
+
+    def extractSelector(element: (Any, Int)): Either[GlobalWarning, Selector] = {
+      val (node, i) =  element
+      try {
+        node match {
+          case item: MapNode if item.node.contains("include") =>
+            item("include").get match {
+              case item: MapNode if item.node.contains("extensions") =>
+                val extensions = item("extensions").get match {
+                  case ListNode(x) => x.map {
+                    case y: String => y
+                    case y => throw EntryException(s"文字列が必要です。（$y でした）")
+                  }
+                }
+                Right(Selector(Inclusive, ExtensionSetPredicate(extensions)))
+            }
+          // TODO: item("exclude") のケースが必要です。
+          case _ => Left(new GlobalWarning(UUID.randomUUID(), s"selectors[$i]: include または exclude が必要です。"))
+        }
+      } catch {
+        case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), s"selectors[$i]: ${e.message}"))
+      }
+    }
+
+    def extractSelectors(root: MapNode): (List[GlobalWarning], Seq[Selector]) = {
+      root("selectors").get match {
+        case ListNode(node) => node.zipWithIndex.map(extractSelector).leftRight
+
+        case _ =>
+          // selectors の型が不正だったときのケース
+          List(Left[GlobalWarning, Selector](new GlobalWarning(UUID.randomUUID(), "selectors が必要です。"))).leftRight
       }
     }
 
@@ -100,18 +145,15 @@ object Manifest {
     }
 
     try {
-      val (warnings, groups) = root("tag_groups").get match {
-        case ListNode(node) =>
-          val x = node.zipWithIndex.map(tagGroup)
-          (x.flatMap(y => y._1), x.flatMap(y => y._2))
-        case _ => List(Left[GlobalWarning, TagGroup](new GlobalWarning(UUID.randomUUID(), "tag_groups が必要です。"))).leftRight
-      }
-      validate(warnings, Manifest(groups))
+      val (warnings1, tagGroups) = extractTagGroups(root)
+      val (warnings2, selectors) = extractSelectors(root)
+      val manifest = Manifest(tagGroups, selectors)
+      validate(warnings1 ++ warnings2, manifest)
     } catch {
       case e: EntryException =>
         val warnings = List(new GlobalWarning(UUID.randomUUID(), e.message))
-        val groups = Manifest(Seq())
-        (warnings, groups)
+        val manifest = Manifest(Seq(), Seq())
+        (warnings, manifest)
     }
   }
 
@@ -153,6 +195,24 @@ object Manifest {
     case object Common extends Category("common", None, false)
     case object Author extends Category("author", Option("作成者"), true)
   }
+
+  /**
+    * ファイルが検索対象であるかを判定する型です。
+    * @param mode セレクタのモード。述語が選択したものを対象とするかしないかを表します。
+    * @param predicate 述語。ファイルを特定のロジックで選択します。
+    */
+  case class Selector(mode: SelectorMode, predicate: FilePredicate)
+
+  sealed trait SelectorMode
+  case object Inclusive extends SelectorMode
+  case object Exclusive extends SelectorMode
+
+  sealed trait FilePredicate
+
+  /**
+    * 拡張子の集合で構成された述語です。
+    */
+  case class ExtensionSetPredicate(extensions: Seq[String]) extends FilePredicate
 
   val SPACES: Regex = "[ 　]".r
 

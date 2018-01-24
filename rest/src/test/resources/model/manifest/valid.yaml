@@ -12,3 +12,6 @@ tag_groups:
         - names: [Butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
         - generic_replacement: 藻
           names: 水雪
+selectors:
+  - include:
+      extensions: [psd, ai, png, jpg, jpeg, pdf, wav, flac, mp3, blender]

@@ -43,7 +43,7 @@ object Yaml {
   case class Entry(key: String, value: Option[Any]) {
     def get: Any = this.value match {
       case Some(x) => x
-      case None => throw EntryException(s"$key に要素がありません。")
+      case None => throw EntryException(s"$key が必要です。")
     }
 
     def option: Option[Entry] = this.value.map(v => this.copy(value = Option(v)))
