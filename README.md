@@ -1,6 +1,7 @@
 # Material Explorer
 
 [![Build Status](https://travis-ci.org/opap-jp/material-explorer.svg)](https://travis-ci.org/opap-jp/material-explorer)
+[![codecov](https://codecov.io/gh/opap-jp/material-explorer/branch/develop/graph/badge.svg)](https://codecov.io/gh/opap-jp/material-explorer)
 
 素材検索システム（仮称）
 
