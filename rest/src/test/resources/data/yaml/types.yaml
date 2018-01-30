@@ -1,0 +1,17 @@
+types:
+  "null": null
+  string: "foo"
+  boolean: true
+  int: 42
+  long: 12345678900
+  big_integer: 12345678901234567890
+  double: 3.14
+  date: 2018-01-01 12:34:56
+  list:
+    - foo
+    - bar
+    - baz
+  mapping:
+    foo: foo
+    bar: 42
+    baz: true

@@ -10,7 +10,7 @@ import com.google.common.io.Files
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode, UndefinedNode}
 import jp.opap.data.yaml.Parent.EmptyParent
-import jp.opap.data.yaml.YamlException.MalformedContentException
+import jp.opap.data.yaml.YamlException.UnsupportedMappingKeyException
 import org.yaml.snakeyaml.{Yaml => SnakeYaml}
 
 import scala.collection.JavaConverters._
@@ -39,11 +39,10 @@ object Yaml {
     case x: java.util.Map[_, _] => {
       val body = x.asScala.toMap.map(x => x._1 match {
         case key: String => key -> constructNode(x._2)
-        case _ => throw MalformedContentException(x)
+        case _ => throw UnsupportedMappingKeyException(x._1, x._2)
       })
       new MappingNode(body , EmptyParent())
     }
-    case x => throw MalformedContentException(x)
   }
 
   def apply[T](supplier: => T): Either[YamlException, T] = {
