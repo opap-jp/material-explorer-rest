@@ -8,7 +8,7 @@ import java.util.Date
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
-import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode, UndefinedNode}
+import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode}
 import jp.opap.data.yaml.Parent.EmptyParent
 import jp.opap.data.yaml.YamlException.UnsupportedMappingKeyException
 import org.yaml.snakeyaml.{Yaml => SnakeYaml}

@@ -1,5 +1,7 @@
 package jp.opap.data.yaml
 
+import java.math.BigInteger
+
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 import jp.opap.data.yaml.YamlException.TypeException
 
@@ -18,4 +20,10 @@ trait Node {
   def list: ListNode = throw TypeException(this)
 
   def string: Leaf[String] = throw TypeException(this)
+  def boolean: Leaf[Boolean] = throw TypeException(this)
+  def int: Leaf[Int] = throw TypeException(this)
+  def long: Leaf[Long] = throw TypeException(this)
+  def bigInteger: Leaf[BigInteger] = throw TypeException(this)
+  def double: Leaf[Double] = throw TypeException(this)
+  def date: Leaf[String] = throw TypeException(this)
 }
