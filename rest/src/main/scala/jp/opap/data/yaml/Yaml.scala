@@ -1,12 +1,14 @@
 package jp.opap.data.yaml
 
 import java.io.{File, InputStream}
+import java.math.BigInteger
+import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
-import jp.opap.data.yaml.Leaf.{NullNode, UndefinedNode}
+import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode, UndefinedNode}
 import jp.opap.data.yaml.Parent.EmptyParent
 import jp.opap.data.yaml.YamlException.MalformedContentException
 import org.yaml.snakeyaml.{Yaml => SnakeYaml}
@@ -25,14 +27,26 @@ object Yaml {
   }
 
   private def constructNode(data: Any): Node = data match {
-    case x: java.util.Map[_, _] => new MappingNode(x.asScala.toMap.map(x => x._1.toString -> constructNode(x._2)), EmptyParent())
-    case x: java.util.List[_] => new ListNode(x.asScala.toList.map(constructNode), EmptyParent())
     case null => NullNode(EmptyParent())
-    case x: Date => UndefinedNode(EmptyParent()) // TODO: LocalDateTime.ofInstant(value.toInstant, ZoneId.systemDefault())
-    case x: Any => throw MalformedContentException(x)
+    case x: String => StringNode(x, EmptyParent())
+    case x: Boolean => BooleanNode(x, EmptyParent())
+    case x: Int => IntNode(x, EmptyParent())
+    case x: Long => LongNode(x, EmptyParent())
+    case x: BigInteger => BigIntegerNode(x, EmptyParent())
+    case x: Double => DoubleNode(x, EmptyParent())
+    case x: Date => DateNode(LocalDateTime.ofInstant(x.toInstant, ZoneId.systemDefault()), EmptyParent())
+    case x: java.util.List[_] => new ListNode(x.asScala.toList.map(constructNode), EmptyParent())
+    case x: java.util.Map[_, _] => {
+      val body = x.asScala.toMap.map(x => x._1 match {
+        case key: String => key -> constructNode(x._2)
+        case _ => throw MalformedContentException(x)
+      })
+      new MappingNode(body , EmptyParent())
+    }
+    case x => throw MalformedContentException(x)
   }
 
-  def either[T](supplier: => T): Either[YamlException, T] = {
+  def apply[T](supplier: => T): Either[YamlException, T] = {
     try {
       Right(supplier)
     } catch {
