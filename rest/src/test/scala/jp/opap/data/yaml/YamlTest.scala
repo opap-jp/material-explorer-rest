@@ -12,7 +12,7 @@ class YamlTest extends FunSpec {
       val data = Tests.getResourceAsStrean("data/yaml/types.yaml")
       val sut = Yaml.parse(data)("types")
 
-      assert(sut("null").isInstanceOf[NullNode])
+      assert(sut("null").isInstanceOf[NullNode[_]])
       assert(sut("string").isInstanceOf[StringNode])
       assert(sut("boolean").isInstanceOf[BooleanNode])
       assert(sut("int").isInstanceOf[IntNode])
