@@ -2,6 +2,7 @@ package jp.opap.data.yaml
 
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode, UndefinedNode}
+import jp.opap.data.yaml.Parent.{ListParent, MappingParent}
 import jp.opap.data.yaml.YamlException.{TypeException, UnsupportedMappingKeyException}
 import org.scalatest.FunSpec
 import jp.opap.material.Tests
@@ -190,6 +191,25 @@ class NodeTest extends FunSpec {
       }
     }
   }
+
+  describe("ancestors") {
+    it("should returns ancestors.") {
+      val sut = getNode("list").list.head.ancestors
+      assert(sut.size == 3)
+
+      assert(sut.head.asInstanceOf[MappingParent].key == "types")
+      assert(sut(1).asInstanceOf[MappingParent].key == "list")
+      assert(sut(2).asInstanceOf[ListParent].index == 0)
+    }
+  }
+
+  describe("location") {
+    it("should returns location.") {
+      val actual = getNode("list").list.head.location
+      assert(actual == """["types"]["list"][0]""")
+    }
+  }
+
 
   def getNode(key: String): Node = {
     val data = Tests.getResourceAsStrean("data/yaml/types.yaml")
