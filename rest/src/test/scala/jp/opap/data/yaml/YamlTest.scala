@@ -6,7 +6,6 @@ import org.scalatest.FunSpec
 import jp.opap.material.Tests
 
 class YamlTest extends FunSpec {
-
   describe("constructNode") {
     it("should return a node which corresponds to each object type.") {
       val data = Tests.getResourceAsStrean("data/yaml/types.yaml")
