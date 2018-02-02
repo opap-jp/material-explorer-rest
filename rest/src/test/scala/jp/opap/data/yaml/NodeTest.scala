@@ -52,16 +52,57 @@ class NodeTest extends FunSpec {
     }
   }
 
+  describe("mappingOption") {
+    it("should return MappingNode when the node is MappingNode.") {
+      assert(getNode("mapping").mappingOption.get.isInstanceOf[MappingNode])
+    }
+
+    it("should return Option[MappingNode] which is empty when the node is undefined.") {
+      assert(getNode("blahblah").mappingOption.isEmpty)
+    }
+
+    it("should return Option[MappingNode] which is empty when the node is null.") {
+      assert(getNode("null").mappingOption.isEmpty)
+    }
+
+    it("should throw TypeException when the node is ValueLeaf.") {
+      assertThrows[TypeException] {
+        getNode("string").mappingOption
+      }
+    }
+  }
+
+  describe("listOption") {
+    it("should return Option[ListNode] which is present when the node is ListNode.") {
+      assert(getNode("list").listOption.get.isInstanceOf[ListNode])
+    }
+
+    it("should return Option[ListNode] which is empty when the node is undefined.") {
+      assert(getNode("blahblah").listOption.isEmpty)
+    }
+
+    it("should return Option[ListNode] which is empty when the node is null.") {
+      assert(getNode("null").listOption.isEmpty)
+    }
+
+    it("should throw TypeException when the node is ValueLeaf.") {
+      assertThrows[TypeException] {
+        getNode("string").listOption
+      }
+    }
+  }
+
+
   describe("string") {
     it("should return StringNode when the node contains string.") {
       assert(getNode("string").string.isInstanceOf[StringNode])
     }
 
-    it("should return UndefinedNode when the node is undefined.") {
+    it("should return UndefinedNode wwhen the node is undefined.") {
       assert(getNode("blahblah").string.isInstanceOf[UndefinedNode[_]])
     }
 
-    it("should return NullNode when the node contains is null.") {
+    it("should return NullNode when the node is null.") {
       assert(getNode("null").string.isInstanceOf[NullNode[_]])
     }
 

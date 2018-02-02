@@ -18,6 +18,9 @@ trait Node {
   def mapping: MappingNode = throw TypeException(this)
   def list: ListNode = throw TypeException(this)
 
+  def mappingOption: Option[MappingNode] = throw TypeException(this)
+  def listOption: Option[ListNode] = throw TypeException(this)
+
   def string: Leaf[String] = throw TypeException(this)
   def boolean: Leaf[Boolean] = throw TypeException(this)
   def int: Leaf[Int] = throw TypeException(this)

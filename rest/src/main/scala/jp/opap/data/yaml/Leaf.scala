@@ -13,15 +13,19 @@ sealed trait Leaf[T] extends Node {
 object Leaf {
   trait EmptyNode[T] extends Leaf[T] {
     override lazy val option: Option[T] = None
-    protected def parameterize[U]: Leaf[U]
+    protected def adjust[U]: Leaf[U]
 
-    override def string: Leaf[String] = this.parameterize
-    override def boolean: Leaf[Boolean] = this.parameterize
-    override def int: Leaf[Int] = this.parameterize
-    override def long: Leaf[Long] = this.parameterize
-    override def bigInteger: Leaf[BigInteger] = this.parameterize
-    override def double: Leaf[Double] = this.parameterize
-    override def date: Leaf[LocalDateTime] = this.parameterize
+    override def string: Leaf[String] = this.adjust
+    override def boolean: Leaf[Boolean] = this.adjust
+    override def int: Leaf[Int] = this.adjust
+    override def long: Leaf[Long] = this.adjust
+    override def bigInteger: Leaf[BigInteger] = this.adjust
+    override def double: Leaf[Double] = this.adjust
+    override def date: Leaf[LocalDateTime] = this.adjust
+
+    override def mappingOption: Option[InternalNode.MappingNode] = None
+
+    override def listOption: Option[InternalNode.ListNode] = None
   }
 
   trait ValueLeaf[T] extends Leaf[T] {
@@ -33,13 +37,13 @@ object Leaf {
   case class UndefinedNode[T](parent: Parent) extends EmptyNode[T] {
     override def withParent(parent: Parent): Node = this.copy(parent = parent)
 
-    protected def parameterize[U]: EmptyNode[U] = this.copy(this.parent)
+    protected def adjust[U]: EmptyNode[U] = this.copy(this.parent)
   }
 
   case class NullNode[T](parent: Parent) extends EmptyNode[T] {
     override def withParent(parent: Parent): Node = this.copy(parent = parent)
 
-    protected def parameterize[U]: EmptyNode[U] = this.copy(this.parent)
+    protected def adjust[U]: EmptyNode[U] = this.copy()
   }
 
   case class StringNode(content: String, parent: Parent) extends ValueLeaf[String] {
@@ -47,8 +51,6 @@ object Leaf {
     override def withParent(parent: Parent): Node = this.copy(parent = parent)
 
     override def string: Leaf[String] = this
-
-    override def toString: String = "\"" + this.content + "\""
   }
 
   case class BooleanNode(content: Boolean, parent: Parent) extends ValueLeaf[Boolean] {

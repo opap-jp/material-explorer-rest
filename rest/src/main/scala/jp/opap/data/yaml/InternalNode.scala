@@ -22,6 +22,7 @@ object InternalNode {
     lazy val toMap: Map[String, Node] = this.children.map(x => x._1 -> x._2.withParent(MappingParent(this, x._1)))
 
     override def mapping: MappingNode = this
+    override def mappingOption: Option[MappingNode] = Option(this)
   }
 
   class ListNode(private val items: List[Node], val parent: Parent) extends InternalNode with Iterable[Node] {
@@ -32,5 +33,6 @@ object InternalNode {
     override lazy val toList: List[Node] = this.items.zipWithIndex.map(x => x._1.withParent(ListParent(this, x._2)))
 
     override def list: ListNode = this
+    override def listOption: Option[ListNode] = Option(this)
   }
 }
