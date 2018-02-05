@@ -2,7 +2,6 @@ package jp.opap.data.yaml
 
 import java.io.{File, InputStream}
 import java.math.BigInteger
-import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
 import com.google.common.base.Charsets
@@ -34,15 +33,14 @@ object Yaml {
     case x: Long => LongNode(x, EmptyParent())
     case x: BigInteger => BigIntegerNode(x, EmptyParent())
     case x: Double => DoubleNode(x, EmptyParent())
-    case x: Date => DateNode(LocalDateTime.ofInstant(x.toInstant, ZoneId.systemDefault()), EmptyParent())
+    case x: Date => DateNode(x.toInstant, EmptyParent())
     case x: java.util.List[_] => new ListNode(x.asScala.toList.map(constructNode), EmptyParent())
-    case x: java.util.Map[_, _] => {
+    case x: java.util.Map[_, _] =>
       val body = x.asScala.toMap.map(x => x._1 match {
         case key: String => key -> constructNode(x._2)
         case _ => throw UnsupportedMappingKeyException(x._1, x._2)
       })
       new MappingNode(body , EmptyParent())
-    }
   }
 
   def apply[T](supplier: => T): Either[YamlException, T] = {

@@ -2,10 +2,11 @@ package jp.opap.data.yaml
 
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode, UndefinedNode}
+import jp.opap.data.yaml.NodeTest.getNode
 import jp.opap.data.yaml.Parent.{ListParent, MappingParent}
-import jp.opap.data.yaml.YamlException.{TypeException, UnsupportedMappingKeyException}
-import org.scalatest.FunSpec
+import jp.opap.data.yaml.YamlException.TypeException
 import jp.opap.material.Tests
+import org.scalatest.FunSpec
 
 class NodeTest extends FunSpec {
   describe("apply(String)") {
@@ -92,7 +93,6 @@ class NodeTest extends FunSpec {
     }
   }
 
-
   describe("string") {
     it("should return StringNode when the node contains string.") {
       assert(getNode("string").string.isInstanceOf[StringNode])
@@ -155,7 +155,7 @@ class NodeTest extends FunSpec {
 
   describe("long") {
     it("should return LongNode when the node contains long.") {
-      assert(getNode("long").isInstanceOf[LongNode])
+      assert(getNode("long").long.isInstanceOf[LongNode])
     }
 
     it("should return UndefinedNode when the node is undefined.") {
@@ -234,7 +234,7 @@ class NodeTest extends FunSpec {
   }
 
   describe("ancestors") {
-    it("should returns ancestors.") {
+    it("should return ancestors.") {
       val sut = getNode("list").list.head.ancestors
       assert(sut.size == 3)
 
@@ -245,13 +245,27 @@ class NodeTest extends FunSpec {
   }
 
   describe("location") {
-    it("should returns location.") {
+    it("should return location.") {
       val actual = getNode("list").list.head.location
       assert(actual == """["types"]["list"][0]""")
     }
   }
 
+  describe("toString") {
+    it("should return the location, name and its value when the node is ValueNode.") {
+      assert(getNode("int").int.toString == "[\"types\"][\"int\"]: IntNode(42)")
+    }
+    it("should return the location, name and its value with quatation when the node is StringNode.") {
+      assert(getNode("list").list.toList.head.string.toString == "[\"types\"][\"list\"][0]: StringNode(\"foo\")")
+    }
+    it("should return the location and the name when the node is InternalNode.") {
+      assert(getNode("list").list.toString == "[\"types\"][\"list\"]: ListNode")
+      assert(getNode("mapping").mapping.toString == "[\"types\"][\"mapping\"]: MappingNode")
+    }
+  }
+}
 
+object NodeTest {
   def getNode(key: String): Node = {
     val data = Tests.getResourceAsStrean("data/yaml/types.yaml")
     Yaml.parse(data)("types")(key)

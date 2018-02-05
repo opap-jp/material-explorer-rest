@@ -1,7 +1,6 @@
 package jp.opap.data.yaml
 
-import java.math.BigInteger
-import java.time.LocalDateTime
+import java.time.Instant
 
 import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 import jp.opap.data.yaml.Parent.{ConcreteParent, EmptyParent, ListParent, MappingParent}
@@ -25,9 +24,9 @@ trait Node {
   def boolean: Leaf[Boolean] = throw TypeException(this)
   def int: Leaf[Int] = throw TypeException(this)
   def long: Leaf[Long] = throw TypeException(this)
-  def bigInteger: Leaf[BigInteger] = throw TypeException(this)
+  def bigInteger: Leaf[BigInt] = throw TypeException(this)
   def double: Leaf[Double] = throw TypeException(this)
-  def date: Leaf[LocalDateTime] = throw TypeException(this)
+  def date: Leaf[Instant] = throw TypeException(this)
 
   def ancestors: List[ConcreteParent] = {
     @tailrec
@@ -46,6 +45,6 @@ trait Node {
   }
 
   override def toString: String = {
-    s"${this.location}: ${this.getClass.getName}"
+    s"${this.location}: ${this.getClass.getSimpleName}"
   }
 }

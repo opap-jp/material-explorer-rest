@@ -7,7 +7,7 @@ sealed trait InternalNode extends Node {
 }
 
 object InternalNode {
-  class MappingNode(private val children: Map[String, Node], val parent: Parent) extends InternalNode with Iterable[(String, Node)] {
+  class MappingNode(private val children: Map[String, Node], val parent: Parent) extends Iterable[(String, Node)] with InternalNode {
     override def apply(key: String): Node = {
       val parent = MappingParent(this, key)
       if (this.children.contains(key))
@@ -25,7 +25,7 @@ object InternalNode {
     override def mappingOption: Option[MappingNode] = Option(this)
   }
 
-  class ListNode(private val items: List[Node], val parent: Parent) extends InternalNode with Iterable[Node] {
+  class ListNode(private val items: List[Node], val parent: Parent) extends Iterable[Node] with InternalNode  {
     override def withParent(parent: Parent): Node = new ListNode(this.items, parent)
 
     override def iterator: Iterator[Node] = this.toList.iterator

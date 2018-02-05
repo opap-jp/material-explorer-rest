@@ -2,8 +2,8 @@ package jp.opap.data.yaml
 
 import jp.opap.data.yaml.Leaf.{BigIntegerNode, BooleanNode, DateNode, DoubleNode, IntNode, LongNode, NullNode, StringNode}
 import jp.opap.data.yaml.YamlException.UnsupportedMappingKeyException
-import org.scalatest.FunSpec
 import jp.opap.material.Tests
+import org.scalatest.FunSpec
 
 class YamlTest extends FunSpec {
   describe("constructNode") {
