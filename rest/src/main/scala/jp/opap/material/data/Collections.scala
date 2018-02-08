@@ -52,9 +52,9 @@ object Collections {
     }
   }
 
-  implicit class EitherList[L, R](self: List[Either[L, R]]) {
-    def leftRight: (List[L], List[R]) = (this.left, this.right)
-    def left: List[L] = self.flatMap(element => element.left.toOption)
-    def right: List[R] = self.flatMap(element => element.right.toOption)
+  implicit class EitherSeq[L, R](self: Seq[Either[L, R]]) {
+    def leftRight: (Seq[L], Seq[R]) = (this.left, this.right)
+    def left: Seq[L] = self.flatMap(element => element.left.toOption)
+    def right: Seq[R] = self.flatMap(element => element.right.toOption)
   }
 }
