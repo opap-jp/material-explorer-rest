@@ -55,8 +55,8 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "[\"tag_groups\"][0]: " + Manifest.WARNING_CATEGORY_NAME_REQUIRED.format("common"))
-      assert(actual._1(1).message == "[\"tag_groups\"][1]: " + Manifest.WARNING_NO_SUCH_CATEGORY_EXISTS.format("foo"))
+      assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_CATEGORY_NAME_REQUIRED.format("common"))
+      assert(actual._1(1).message == "/tag_groups[1]: " + Manifest.WARNING_NO_SUCH_CATEGORY_EXISTS.format("foo"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -94,7 +94,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-selector.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "[\"selectors\"][0]: " + Manifest.WARNING_SELECTOR_MODE_REQUIRED)
+      assert(actual._1.head.message == "/selectors[0]: " + Manifest.WARNING_SELECTOR_MODE_REQUIRED)
       assert(actual._2 == Manifest(List(), List()))
     }
   }
