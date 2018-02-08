@@ -247,20 +247,20 @@ class NodeTest extends FunSpec {
   describe("location") {
     it("should return location.") {
       val actual = getNode("list").list.head.location
-      assert(actual == """["types"]["list"][0]""")
+      assert(actual == "/types/list[0]")
     }
   }
 
   describe("toString") {
     it("should return the location, name and its value when the node is ValueNode.") {
-      assert(getNode("int").int.toString == "[\"types\"][\"int\"]: IntNode(42)")
+      assert(getNode("int").int.toString == "/types/int: IntNode(42)")
     }
     it("should return the location, name and its value with quatation when the node is StringNode.") {
-      assert(getNode("list").list.toList.head.string.toString == "[\"types\"][\"list\"][0]: StringNode(\"foo\")")
+      assert(getNode("list").list.toList.head.string.toString == "/types/list[0]: StringNode(\"foo\")")
     }
     it("should return the location and the name when the node is InternalNode.") {
-      assert(getNode("list").list.toString == "[\"types\"][\"list\"]: ListNode")
-      assert(getNode("mapping").mapping.toString == "[\"types\"][\"mapping\"]: MappingNode")
+      assert(getNode("list").list.toString == "/types/list: ListNode")
+      assert(getNode("mapping").mapping.toString == "/types/mapping: MappingNode")
     }
   }
 }

@@ -1,7 +1,7 @@
 package jp.opap.material.model
 
+import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.data.Yaml
 import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup}
 import org.scalatest.FunSpec
 
@@ -43,10 +43,10 @@ class ManifestTest extends FunSpec {
         ), List()
       )
 
-      assert(actual._1.head.message == "祝園アカネ - このラベルは重複しています。")
-      assert(actual._1(1).message == "井二かける - このラベルは重複しています。")
-      assert(actual._1(2).message == "藻 - このラベルは重複しています。")
-      assert(actual._1(3).message == "Butameron - このラベルは重複しています。")
+      assert(actual._1.head.message == Manifest.WARNING_DUPLICATED_LABEL.format("祝園アカネ"))
+      assert(actual._1(1).message == Manifest.WARNING_DUPLICATED_LABEL.format("井二かける"))
+      assert(actual._1(2).message == Manifest.WARNING_DUPLICATED_LABEL.format("藻"))
+      assert(actual._1(3).message == Manifest.WARNING_DUPLICATED_LABEL.format("Butameron"))
 
       assert(actual._2 == expectedManifest)
     }
@@ -55,8 +55,8 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "tag_groups[0]: name が必要です。")
-      assert(actual._1(1).message == "tag_groups[1]: foo - そのようなカテゴリはありません。")
+      assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_CATEGORY_NAME_REQUIRED.format("common"))
+      assert(actual._1(1).message == "/tag_groups[1]: " + Manifest.WARNING_NO_SUCH_CATEGORY_EXISTS.format("foo"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -78,7 +78,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-tag-groups.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "tag_groups が必要です。")
+      assert(actual._1.head.message == ": " + Manifest.WARNING_KEY_REQUIRED.format("tag_groups"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -86,7 +86,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-selectors.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "selectors が必要です。")
+      assert(actual._1.head.message == ": " + Manifest.WARNING_KEY_REQUIRED.format("selectors"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -94,7 +94,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-selector.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "selectors[0]: include または exclude が必要です。")
+      assert(actual._1.head.message == "/selectors[0]: " + Manifest.WARNING_SELECTOR_MODE_REQUIRED)
       assert(actual._2 == Manifest(List(), List()))
     }
   }

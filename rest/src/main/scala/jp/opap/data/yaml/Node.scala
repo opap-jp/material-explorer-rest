@@ -38,10 +38,19 @@ trait Node {
   }
 
   lazy val location: String = {
-    this.ancestors.map {
-      case MappingParent(_, key) => "[\"" + key + "\"]"
-      case ListParent(_, index) => s"[$index]"
-    }.mkString("")
+    @tailrec
+    def l(parent: Parent, previous: Option[Parent], portions: String): String = {
+      parent match {
+        case EmptyParent() =>
+          previous match {
+            case Some(_: ListParent) => "/" + portions
+            case _ => portions
+          }
+        case MappingParent(node, key) => l(node.parent, Option(parent), "/" + key + portions)
+        case ListParent(node, index) => l(node.parent, Option(parent), "[" + index + "]" + portions)
+      }
+    }
+    l(this.parent, None, "")
   }
 
   override def toString: String = {
