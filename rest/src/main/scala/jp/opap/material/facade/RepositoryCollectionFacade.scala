@@ -30,8 +30,7 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
 
     // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
     val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)))
-
-    val config = RepositoryConfig.fromYaml(jp.opap.material.data.Yaml.parse(new File(configuration.repositories)))
+    val config = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
 
     val repositories = config._2.repositories
       .flatMap(info => {

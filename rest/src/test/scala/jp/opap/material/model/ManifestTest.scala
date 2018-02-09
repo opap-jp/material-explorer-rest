@@ -78,7 +78,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-tag-groups.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == ": " + Manifest.WARNING_KEY_REQUIRED.format("tag_groups"))
+      assert(actual._1.head.message == ": " + WARNING_KEY_REQUIRED.format("tag_groups"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -86,7 +86,7 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-selectors.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == ": " + Manifest.WARNING_KEY_REQUIRED.format("selectors"))
+      assert(actual._1.head.message == ": " + WARNING_KEY_REQUIRED.format("selectors"))
       assert(actual._2 == Manifest(List(), List()))
     }
 

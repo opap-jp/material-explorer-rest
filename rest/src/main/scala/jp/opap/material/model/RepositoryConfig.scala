@@ -3,6 +3,7 @@ package jp.opap.material.model
 import java.io.{File, IOException}
 import java.util.UUID
 
+import jp.opap.data.yaml.Node
 import jp.opap.material.data.Yaml
 import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
@@ -18,6 +19,7 @@ object RepositoryConfig {
   val PATTERN_ID: Regex = "^[a-z0-9_-]+$".r
 
   val WARNING_INVALID_ID: String = "%1$s - このIDは不正です。IDは、 /^[a-z0-9_-]+$/ でなければなりません。"
+  val WARNING_NO_SUCH_PROTOCOL: String = "%1$s - そのような取得方式はありません。"
   val WARNING_DUPLICATED_ID: String = "%1$s - このIDは重複しています。"
 
   /**
@@ -45,24 +47,17 @@ object RepositoryConfig {
     */
   case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 
-  def fromYaml(document: Any): (List[GlobalWarning], RepositoryConfig) = {
-    def item(element: (Any, Int)): Either[GlobalWarning, RepositoryInfo] = {
-      val (node, i) = element
-      try {
-        node match {
-          case item: MapNode =>
-            val id = item("id").string.toLowerCase
-            if (PATTERN_ID.findFirstIn(id).isEmpty)
-              throw EntryException(WARNING_INVALID_ID.format(id))
-
-            item("protocol").get match {
-              case "gitlab" => Right(GitlabRepositoryInfo(id, item("title").string, item("host").string, item("namespace").string, item("name").string))
-              case _ => throw EntryException("protocol が必要です。")
-            }
-          case _ => throw EntryException("要素の型が不正です。")
+  def fromYaml(document: Node): (List[GlobalWarning], RepositoryConfig) = {
+    def extractItem(node: Node): Either[GlobalWarning, RepositoryInfo] = {
+      withWarning {
+        val id = node("id").string.get.toLowerCase
+        if (PATTERN_ID.findFirstIn(id).isEmpty)
+          throw GlobalException(WARNING_INVALID_ID.format(id), Option(node))
+        node("protocol").string.get match {
+          case "gitlab" =>
+            GitlabRepositoryInfo(id, node("title").string.get, node("host").string.get, node("namespace").string.get, node("name").string.get)
+          case protocol => throw GlobalException(WARNING_NO_SUCH_PROTOCOL.format(protocol), Option(node))
         }
-      } catch {
-        case e: EntryException => Left(new GlobalWarning(UUID.randomUUID(), s"repositories[$i]: ${e.message}"))
       }
     }
 
@@ -76,21 +71,12 @@ object RepositoryConfig {
       (warnings ++ w, c)
     }
 
-    try {
-      val (warnings, repositories) = (document match {
-        case MapNode(root) => root.get("repositories") match {
-          case Some(ListNode(items)) => items.zipWithIndex.map(item)
-          case _ => List(Left(new GlobalWarning(UUID.randomUUID(), "repositories が必要です。")))
-        }
-        case _ => List(Left(new GlobalWarning(UUID.randomUUID(), "repositories が必要です。")))
-      }).leftRight
-
-      validate(warnings.toList, RepositoryConfig(repositories.toList))
-    } catch {
-      case e: IOException =>
-        val warning = GlobalWarning(UUID.randomUUID(), "リポジトリ設定ファイルの取得に失敗しました。", Option(e.getMessage))
-        (List(warning),  RepositoryConfig(List()))
+    val repositories = withWarnings {
+      val items = document("repositories").list.map(extractItem).toList
+      items.left -> RepositoryConfig(items.right.toList)
     }
+
+    validate(repositories._1.toList, repositories._2.getOrElse(RepositoryConfig(List())))
   }
 
 }
