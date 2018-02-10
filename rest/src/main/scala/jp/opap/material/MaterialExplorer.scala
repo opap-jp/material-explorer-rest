@@ -13,7 +13,6 @@ import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.{RepositoryCollectionFacade, RepositoryDataEventEmitter}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
-import org.slf4j.LoggerFactory
 
 object MaterialExplorer extends Application[AppConfiguration] {
   def main(args: Array[String]): Unit = {

@@ -54,7 +54,7 @@ object Collections {
 
   implicit class EitherSeq[L, R](self: Seq[Either[L, R]]) {
     def leftRight: (Seq[L], Seq[R]) = (this.left, this.right)
-    def left: Seq[L] = self.flatMap(element => element.left.toOption)
-    def right: Seq[R] = self.flatMap(element => element.right.toOption)
+    lazy val left: Seq[L] = self.flatMap(element => element.left.toOption)
+    lazy val right: Seq[R] = self.flatMap(element => element.right.toOption)
   }
 }

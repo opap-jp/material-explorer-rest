@@ -2,8 +2,6 @@ package jp.opap.material.model
 
 import java.util.UUID
 
-import scala.beans.BeanProperty
-
 object Components {
   sealed trait IntermediateComponent {
     val id: UUID

@@ -1,11 +1,8 @@
 package jp.opap.material.model
 
-import java.io.{File, IOException}
 import java.util.UUID
 
 import jp.opap.data.yaml.Node
-import jp.opap.material.data.Yaml
-import jp.opap.material.data.Yaml.{EntryException, ListNode, MapNode}
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.GlobalWarning
