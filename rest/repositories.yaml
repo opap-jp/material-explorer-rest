@@ -1,8 +1,8 @@
 repositories:
   -
-    id: kosys-lite-ep01
-    title: "コウシス! LITE #1"
+    id: mock-for-material-explorer
+    title: "素材検索システム用モック"
     protocol: gitlab
     host: https://gitlab.com
     namespace: kosys
-    name: kosys-lite-ep01
+    name: mock-for-material-explorer
