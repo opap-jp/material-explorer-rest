@@ -1,5 +1,6 @@
 package jp.opap.material
 
+import java.io.File
 import java.util
 import javax.servlet.DispatcherType
 
@@ -7,10 +8,13 @@ import com.mongodb.MongoClient
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
+import jp.opap.data.yaml.Yaml
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
-import jp.opap.material.facade.{RepositoryCollectionFacade, RepositoryDataEventEmitter}
+import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
+import jp.opap.material.facade.{GitLabRepositoryLoaderFactory, MediaConverter, RepositoryCollectionFacade, RepositoryDataEventEmitter}
+import jp.opap.material.model.{Manifest, RepositoryConfig}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
 
@@ -26,19 +30,22 @@ object MaterialExplorer extends Application[AppConfiguration] {
   }
 
   override def run(configuration: AppConfiguration, environment: Environment): Unit = {
-    val dbClient = new MongoClient(configuration.dbHost)
-    val db = dbClient.getDatabase("material_explorer")
+    def getServiceBundle: ServiceBundle = {
+      val dbClient = new MongoClient(configuration.dbHost)
+      val db = dbClient.getDatabase("material_explorer")
 
+      val repositoryDao = new MongoRepositoryDao(db)
+      val componentDao = new MongoComponentDao(db)
+      val thumbnailDao = new MongoThumbnailDao(db)
+
+      new ServiceBundle(repositoryDao, componentDao, thumbnailDao)
+    }
+
+    val serviceBundle = getServiceBundle
     val repositoryEventEmitter = new RepositoryDataEventEmitter()
 
-    val repositoryDao = new MongoRepositoryDao(db)
-    val componentDao = new MongoComponentDao(db)
-    val thumbnailDao = new MongoThumbnailDao(db)
-    val repositoryCollectionFacade = new RepositoryCollectionFacade(configuration, repositoryDao, componentDao, thumbnailDao, repositoryEventEmitter)
+    val rootResource = new RootResource(serviceBundle, repositoryEventEmitter)
 
-    val rootResource = new RootResource(repositoryDao, componentDao, thumbnailDao, repositoryEventEmitter)
-
-    val pattern = "\\.([a-zA-Z0-9]+)$".r
     val server = environment.jersey()
     server.register(rootResource)
 
@@ -54,15 +61,24 @@ object MaterialExplorer extends Application[AppConfiguration] {
     servlets.addFilter(classOf[PrettyPrintFilter].getSimpleName, PrettyPrintFilter.SINGLETON)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
-
-    new Thread() {
-      override def run(): Unit = {
-        MaterialExplorer.this.updateRepositoryData(repositoryCollectionFacade, configuration)
-      }
-    }.start()
+    updateRepositoryData(configuration, serviceBundle, repositoryEventEmitter)
+      .start()
   }
 
-  def updateRepositoryData(facade: RepositoryCollectionFacade, configuration: AppConfiguration): Unit = {
-    facade.updateRepositories(configuration)
+  def updateRepositoryData(configuration: AppConfiguration, services: ServiceBundle, eventEmitter: RepositoryDataEventEmitter): Thread = {
+    val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)))
+    val repositories = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
+
+    val context = RepositoryCollectionFacade.Context(manifest, repositories)
+    val converters =Seq(new ImageConverter(new RestResize(configuration.imageMagickHost)))
+    val loaders = Seq(new GitLabRepositoryLoaderFactory(configuration))
+
+    val facade = new RepositoryCollectionFacade(context, services, converters, loaders, eventEmitter)
+
+    new Thread(()  => facade.updateRepositories())
+  }
+
+  class ServiceBundle(val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao,
+    val thumbnailDao: MongoThumbnailDao) {
   }
 }

@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.file.Files
 import java.util.UUID
 
+import jp.opap.material.AppConfiguration
 import jp.opap.material.facade.RepositoryLoader.{ChangedResult, RepositoryLoaderFactory}
 import jp.opap.material.model.Components.IntermediateFile
 import jp.opap.material.model.Repository
@@ -14,17 +15,17 @@ import org.gitlab4j.api.models.TreeItem
 
 import scala.collection.JavaConverters._
 
-object GitLabRepositoryLoaderFactory extends RepositoryLoaderFactory {
-  override def attemptCreate(info: RepositoryInfo, storage: File): Option[RepositoryLoader] = info match {
-    case info: GitlabRepositoryInfo => Option(create(info, storage))
+class GitLabRepositoryLoaderFactory(val config: AppConfiguration) extends RepositoryLoaderFactory {
+  override def attemptCreate(info: RepositoryInfo): Option[RepositoryLoader] = info match {
+    case info: GitlabRepositoryInfo => Option(create(info))
     case _ => Option.empty
   }
 
-  protected def create(repositoryInfo: GitlabRepositoryInfo, repositoryStore: File): RepositoryLoader = new RepositoryLoader {
+  protected def create(repositoryInfo: GitlabRepositoryInfo): RepositoryLoader = new RepositoryLoader {
     override val info: GitlabRepositoryInfo = repositoryInfo
 
     val gitLab = new GitLabApi(ApiVersion.V4, repositoryInfo.host, null: String)
-    val store: File = repositoryStore
+    val store: File = new File(config.repositoryStore)
     var projectId: Int = _
     var hashDictionary: Map[String, String] = _
 
@@ -60,6 +61,7 @@ object GitLabRepositoryLoaderFactory extends RepositoryLoaderFactory {
     }
 
     override def loadFile(path: String, cache: Boolean): File = {
+      // TODO: リポジトリ用ストレージの名称のサニタイズ（idにハッシュ値をつける）
       val file = new File(this.store, path)
       if (file.exists())
         file
