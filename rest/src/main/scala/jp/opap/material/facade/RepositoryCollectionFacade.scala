@@ -26,7 +26,8 @@ class RepositoryCollectionFacade(val context: Context, val services: ServiceBund
 
     val repositories = config._2.repositories
       .flatMap(info => {
-        this.loaderFactories.view.map(factory => factory.attemptCreate(info))
+        this.loaderFactories.view
+          .map(factory => factory.attemptCreate(info))
           .find(loader => loader.isDefined)
           .flatten
           .seq
@@ -162,5 +163,7 @@ class RepositoryCollectionFacade(val context: Context, val services: ServiceBund
 }
 
 object RepositoryCollectionFacade {
+  val WARNING_NO_SUCH_LOADER: String = "%1$s - このリポジトリの取得方式に対応していません。"
+
   case class Context(manifest: (Seq[GlobalWarning], Manifest), repositoryConfig: (Seq[GlobalWarning], RepositoryConfig))
 }
