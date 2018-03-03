@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.model.RepositoryConfig.GitlabRepositoryInfo
+import jp.opap.material.facade.GitLabRepositoryLoaderFactory.GitlabRepositoryInfo
 import org.scalatest.FunSpec
 
 class RepositoryConfigTest extends FunSpec {

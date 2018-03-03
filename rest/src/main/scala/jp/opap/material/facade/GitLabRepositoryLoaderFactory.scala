@@ -5,10 +5,11 @@ import java.nio.file.Files
 import java.util.UUID
 
 import jp.opap.material.AppConfiguration
+import jp.opap.material.facade.GitLabRepositoryLoaderFactory.GitlabRepositoryInfo
 import jp.opap.material.facade.RepositoryLoader.{ChangedResult, RepositoryLoaderFactory}
 import jp.opap.material.model.Components.IntermediateFile
 import jp.opap.material.model.Repository
-import jp.opap.material.model.RepositoryConfig.{GitlabRepositoryInfo, RepositoryInfo}
+import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import org.gitlab4j.api.GitLabApi
 import org.gitlab4j.api.GitLabApi.ApiVersion
 import org.gitlab4j.api.models.TreeItem
@@ -80,4 +81,15 @@ class GitLabRepositoryLoaderFactory(val config: AppConfiguration) extends Reposi
       file.delete()
     }
   }
+}
+
+object GitLabRepositoryLoaderFactory {
+  /**
+    * GitLab で取得可能なリポジトリの情報を表現するクラスです。
+    *
+    * @param host GitLab をホスティングしているサーバーの URL
+    * @param namespace GitLab リポジトリの namespace
+    * @param name GitLab リポジトリの name
+    */
+  case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 }

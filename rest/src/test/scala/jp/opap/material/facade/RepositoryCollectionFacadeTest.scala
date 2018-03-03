@@ -2,7 +2,6 @@ package jp.opap.material.facade
 
 import java.nio.file.Files
 
-import jp.opap.material.AppConfiguration
 import jp.opap.material.MaterialExplorer.ServiceBundle
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.MediaConverter.ImageConverter
