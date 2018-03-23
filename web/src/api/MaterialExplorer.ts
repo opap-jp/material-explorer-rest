@@ -1,7 +1,11 @@
+import Repository from "@/models/Repository";
+import RepositoryItem from "@/models/RepositoryItem";
+import ThumbnailFile from "@/models/ThumbnailFile";
+
 // この変数（プレースホルダ）は webpack によって置換されます。
 declare let SERVICE_HOST: string;
 
-export class MaterialExplorer {
+export default class MaterialExplorer {
     static host: string = SERVICE_HOST;
     static resolve: (path: string) => string = (path) => MaterialExplorer.host + path;
     static request: (path: string) => Promise<Response> = (path) => fetch(MaterialExplorer.resolve(path));
@@ -27,31 +31,4 @@ export class MaterialExplorer {
             thumbnail: (fileId: String) =>  resolve("/thumbnail/" + fileId)
         };
     })();
-}
-
-export interface Repository {
-    id: string;
-    name: string;
-    title: string;
-    lastActivityAt: string;
-}
-
-export interface RepositoryItem {
-    projectId: string;
-    path: string;
-}
-
-export interface ThumbnailFile {
-    file: {
-        id: String,
-        repositoryId: String,
-        parentId: String,
-        name: String,
-        path: String,
-    },
-    thumbnail: {
-        fileId: String,
-        width: number,
-        height: number,
-    }
 }
