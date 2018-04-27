@@ -6,11 +6,14 @@ import jp.opap.data.yaml.Leaf.EmptyNode
 import jp.opap.data.yaml.Parent.MappingParent
 import jp.opap.data.yaml.YamlException.TypeException
 import jp.opap.data.yaml.{Node, Yaml, YamlException}
+import jp.opap.data.yaml.{Node, Yaml, YamlException}
+import jp.opap.data.yaml.YamlException.{TypeException, UnsupportedMappingKeyException}
 import jp.opap.material.model.Warning.GlobalWarning
 
 package object model {
   val WARNING_NODE_TYPE_INVALID: String = "%1$s - 要素の型が不正です。"
   val WARNING_KEY_REQUIRED: String = "%1$s が必要です。"
+  val WARNING_UNSUPPORTED_MAPPING_KEY: String = "対応していない形式のキーを持つマッピングがあります。"
 
   def withWarning[T](supplier: => T): Either[GlobalWarning, T] = {
     try {
@@ -46,6 +49,7 @@ package object model {
           case _ => nonMapping(node)
         }
       case TypeException(node) => nonMapping(node)
+      case UnsupportedMappingKeyException(_, _) => GlobalWarning(UUID.randomUUID(), WARNING_UNSUPPORTED_MAPPING_KEY, None)
     }
   }
 

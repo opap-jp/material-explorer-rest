@@ -4,6 +4,7 @@ import java.util.UUID
 
 import jp.opap.data.yaml.Node
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
+import jp.opap.material.facade.GitLabRepositoryLoaderFactory.GitlabRepositoryInfo
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.GlobalWarning
 
@@ -22,7 +23,7 @@ object RepositoryConfig {
   /**
     * 取得するリポジトリの情報を表現するクラスです。
     */
-  sealed trait RepositoryInfo {
+  trait RepositoryInfo {
 
     /**
       * システム内での、このリポジトリの識別子です。ファイル名として正しい文字列でなければなりません。
@@ -35,14 +36,6 @@ object RepositoryConfig {
     val title: String
   }
 
-  /**
-    * GitLab で取得可能なリポジトリの情報を表現するクラスです。
-    *
-    * @param host GitLab をホスティングしているサーバーの URL
-    * @param namespace GitLab リポジトリの namespace
-    * @param name GitLab リポジトリの name
-    */
-  case class GitlabRepositoryInfo(id: String, title: String, host: String, namespace: String, name: String) extends RepositoryInfo
 
   def fromYaml(document: Node): (List[GlobalWarning], RepositoryConfig) = {
     def extractItem(node: Node): Either[GlobalWarning, RepositoryInfo] = {

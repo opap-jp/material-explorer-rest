@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+  "org.mockito" % "mockito-core" % "2.15.0" % "test"
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)

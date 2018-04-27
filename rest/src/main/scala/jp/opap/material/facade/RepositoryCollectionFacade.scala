@@ -1,12 +1,10 @@
 package jp.opap.material.facade
 
-import java.io.{File, IOException, InputStream}
+import java.io.IOException
 import java.util.UUID
 
-import jp.opap.data.yaml.Yaml
-import jp.opap.material.AppConfiguration
-import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
-import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
+import jp.opap.material.MaterialExplorer.ServiceBundle
+import jp.opap.material.facade.RepositoryCollectionFacade.Context
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
@@ -14,30 +12,25 @@ import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.ComponentWarning
 import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, MetaData, RepositoryConfig}
+import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
+import jp.opap.material.model.{ComponentEntry, Manifest, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
-class RepositoryCollectionFacade(val configuration: AppConfiguration,
-    val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao, val thumbnailDao: MongoThumbnailDao,
+class RepositoryCollectionFacade(val context: Context, val services: ServiceBundle,
+    val converters: Seq[MediaConverter], val loaderFactories: Seq[RepositoryLoaderFactory],
     val eventEmitter: RepositoryDataEventEmitter) {
   val LOG: Logger = LoggerFactory.getLogger(classOf[RepositoryCollectionFacade])
 
-  val loadersFactories: Seq[RepositoryLoaderFactory] = Seq(GitLabRepositoryLoaderFactory)
-  val converters: Seq[MediaConverter] = Seq(
-      new ImageConverter(new RestResize(configuration.imageMagickHost))
-    )
-
-  def updateRepositories(configuration: AppConfiguration): Unit = {
+  def updateRepositories(): Unit = {
     LOG.info("リポジトリ データの更新を開始しました。")
 
-    // TODO: 1. マスタデータから、メタデータで使用する識別子（タグ）の定義と、取得対象のリモートリポジトリ情報のリストを取得する。
-    val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)))
-    val config = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
+    val manifest = context.manifest
+    val config = context.repositoryConfig
 
     val repositories = config._2.repositories
       .flatMap(info => {
-        // TODO: リポジトリ用ストレージの名称のサニタイズ（idにハッシュ値をつける）
-        val repositoryStore = new File(this.configuration.repositoryStore, info.id)
-        this.loadersFactories.view.map(factory => factory.attemptCreate(info, repositoryStore))
+        this.loaderFactories.view
+          .map(factory => factory.attemptCreate(info))
           .find(loader => loader.isDefined)
           .flatten
           .seq
@@ -62,10 +55,10 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新を開始しました。")
 
     val info = loader.info
-    val savedRepository = this.repositoryDao.findById(info.id)
+    val savedRepository = this.services.repositoryDao.findById(info.id)
 
     // データベースに保存されている、ファイルのリストを取得します。
-    val storedFiles = this.componentDao.findFiles(info.id).map(_.toIntermediate)
+    val storedFiles = this.services.componentDao.findFiles(info.id).map(_.toIntermediate)
 
     // リモートリポジトリから、変更されたファイルのリストを取得します。
     val changedResult = loader.loadChangedFiles(savedRepository)
@@ -85,17 +78,17 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     // TODO: マージやスコープなどを考慮して、メタデータとファイルの関連づけを行ないます。
 
     // ファイルやディレクトリの古い情報をデータベースから削除します。
-    this.componentDao.deleteByRepositoryId(info.id)
+    this.services.componentDao.deleteByRepositoryId(info.id)
 
     // リポジトリの情報をデータベースに書き込みます。
-    this.repositoryDao.update(changedResult.repository)
+    this.services.repositoryDao.update(changedResult.repository)
 
     // ファイルやディレクトリの情報をデータベースに書き込みます。
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）のサムネイル生成を開始します。")
     toList(info, fileTree)
       .par
       .foreach(component => {
-        this.componentDao.insert(component)
+        this.services.componentDao.insert(component)
 
         (component match {
           case _: DirectoryEntry =>  Option.empty
@@ -166,12 +159,12 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
     // あったら、なにもしません。なければ、該当するパスのドキュメントを削除し、ダウンロードし、サムネイル生成、書き込み。
     this.converters.find(converter => converter.shouldDispatch(file))
       .foreach(converter => {
-        if (this.thumbnailDao.findById(file.id).isEmpty) {
+        if (this.services.thumbnailDao.findById(file.id).isEmpty) {
           try {
             LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
             val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
-            this.thumbnailDao.deleteByFile(file)
-            this.thumbnailDao.insert(thumb, file)
+            this.services.thumbnailDao.deleteByFile(file)
+            this.services.thumbnailDao.insert(thumb, file)
             LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
           } catch {
             case e: IOException =>
@@ -183,6 +176,10 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
         }
       })
   }
+}
 
-  def repositoryPath(repositoryId: String): File = new File(this.configuration.repositoryStore, repositoryId)
+object RepositoryCollectionFacade {
+  val WARNING_NO_SUCH_LOADER: String = "%1$s - このリポジトリの取得方式に対応していません。"
+
+  case class Context(manifest: (Seq[GlobalWarning], Manifest), repositoryConfig: (Seq[GlobalWarning], RepositoryConfig))
 }

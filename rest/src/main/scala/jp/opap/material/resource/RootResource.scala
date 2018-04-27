@@ -6,13 +6,17 @@ import javax.ws.rs.core.{MediaType, Response}
 import javax.ws.rs.{GET, Path, PathParam, Produces}
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jp.opap.material.MaterialExplorer.ServiceBundle
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.facade.{Progress, ProgressListener, RepositoryDataEventEmitter}
 import org.glassfish.jersey.media.sse.{EventOutput, OutboundEvent, SseFeature}
 
 @Path("")
-class RootResource(val projectDao: MongoRepositoryDao, val componentDao: MongoComponentDao,
-  val thumbnailDao: MongoThumbnailDao, val eventEmitter: RepositoryDataEventEmitter) {
+class RootResource(val services: ServiceBundle, val eventEmitter: RepositoryDataEventEmitter) {
+  val projectDao: MongoRepositoryDao = services.repositoryDao
+  val componentDao: MongoComponentDao = services.componentDao
+  val thumbnailDao: MongoThumbnailDao = services.thumbnailDao
+
   @GET
   @Path("/repositories")
   @Produces(Array(MediaType.APPLICATION_JSON))

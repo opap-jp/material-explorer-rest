@@ -16,7 +16,7 @@ trait RepositoryLoader {
 
 object RepositoryLoader {
   trait RepositoryLoaderFactory {
-    def attemptCreate(info: RepositoryInfo, storage: File): Option[RepositoryLoader]
+    def attemptCreate(info: RepositoryInfo): Option[RepositoryLoader]
   }
 
   case class ChangedResult(repository: Repository, files: Seq[IntermediateFile])
