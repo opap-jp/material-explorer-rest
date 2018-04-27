@@ -13,7 +13,7 @@ import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbna
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
-import jp.opap.material.facade.{GitLabRepositoryLoaderFactory, MediaConverter, RepositoryCollectionFacade, RepositoryDataEventEmitter}
+import jp.opap.material.facade.{GitLabRepositoryLoaderFactory, RepositoryCollectionFacade, RepositoryDataEventEmitter}
 import jp.opap.material.model.{Manifest, RepositoryConfig}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter

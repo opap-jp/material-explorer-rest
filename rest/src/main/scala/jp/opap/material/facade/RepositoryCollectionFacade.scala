@@ -10,10 +10,8 @@ import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
 import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
-import jp.opap.material.model.Warning.ComponentWarning
-import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, MetaData, RepositoryConfig}
 import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
-import jp.opap.material.model.{ComponentEntry, Manifest, RepositoryConfig}
+import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, MetaData, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(val context: Context, val services: ServiceBundle,
