@@ -5,7 +5,7 @@ import jp.opap.data.yaml.InternalNode.{ListNode, MappingNode}
 sealed trait Parent
 
 object Parent {
-  trait ConcreteParent extends Parent {
+  sealed trait ConcreteParent extends Parent {
     val node: Node
   }
 
