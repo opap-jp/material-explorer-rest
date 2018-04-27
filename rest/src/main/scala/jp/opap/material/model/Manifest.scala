@@ -132,7 +132,7 @@ object Manifest {
     }
 
     case object Common extends Category("common", None, false)
-    case object Author extends Category("author", Option("作成者"), true)
+    case object Author extends Category("author", Some("作成者"), true)
   }
 
   /**

@@ -53,7 +53,6 @@ object MaterialExplorer extends Application[AppConfiguration] {
     servlets.addFilter(classOf[PrettyPrintFilter].getSimpleName, PrettyPrintFilter.SINGLETON)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
-
     new Thread() {
       override def run(): Unit = {
         MaterialExplorer.this.updateRepositoryData(repositoryCollectionFacade, configuration)

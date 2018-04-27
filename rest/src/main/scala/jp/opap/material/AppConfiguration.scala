@@ -8,21 +8,21 @@ import scala.beans.BeanProperty
 class AppConfiguration extends Configuration {
   @BeanProperty
   @NotEmpty
-  var dbHost: String = ""
+  var dbHost: String = _
 
   @BeanProperty
   @NotEmpty
-  var repositories: String = ""
+  var repositories: String = _
 
   @BeanProperty
   @NotEmpty
-  var manifest: String = ""
+  var manifest: String = _
 
   @BeanProperty
   @NotEmpty
-  var repositoryStore: String = ""
+  var repositoryStore: String = _
 
   @BeanProperty
   @NotEmpty
-  var imageMagickHost: String = ""
+  var imageMagickHost: String = _
 }
