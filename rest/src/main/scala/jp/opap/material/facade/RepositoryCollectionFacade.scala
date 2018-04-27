@@ -10,9 +10,10 @@ import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
 import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDirectory, IntermediateFile}
+import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.ComponentWarning
-import jp.opap.material.model.{ComponentEntry, Manifest, RepositoryConfig}
+import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, MetaData, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(val configuration: AppConfiguration,
@@ -131,6 +132,19 @@ class RepositoryCollectionFacade(val configuration: AppConfiguration,
 
     val root = IntermediateDirectory(UUID.randomUUID(), "", Option.empty, Map())
     files.seq.foldLeft(root)(accumulate)
+  }
+
+  def metaComponent(component: IntermediateComponent): MetaComponent = {
+    // TODO: 作成中です
+    component match {
+      case IntermediateDirectory(id, name, path, children) => {
+        val metaChildren = children.map(x => x._1 -> metaComponent(x._2))
+        MetaDirectory(id, name, MetaData(), metaChildren)
+      }
+      case IntermediateFile(id, name, path) =>
+        // TODO: ここで、メタデータを参照するために兄弟ファイル（name.yaml）を参照できないといけない。
+        MetaFile(id, name, MetaData())
+    }
   }
 
   def toList(info: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {

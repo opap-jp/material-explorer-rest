@@ -1,5 +1,5 @@
 package jp.opap.material.model
 
-trait MetaData {
+case class MetaData() {
 
 }

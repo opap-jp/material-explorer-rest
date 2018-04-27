@@ -4,8 +4,8 @@ import java.util.UUID
 
 import jp.opap.data.yaml.Leaf.EmptyNode
 import jp.opap.data.yaml.Parent.MappingParent
-import jp.opap.data.yaml.{Node, Yaml, YamlException}
 import jp.opap.data.yaml.YamlException.TypeException
+import jp.opap.data.yaml.{Node, Yaml, YamlException}
 import jp.opap.material.model.Warning.GlobalWarning
 
 package object model {
