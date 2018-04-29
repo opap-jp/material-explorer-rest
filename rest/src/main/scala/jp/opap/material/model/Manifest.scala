@@ -102,12 +102,12 @@ object Manifest {
 
   object Tag {
     def create(names: List[String], generic: Option[String]): Tag = {
-      Tag(names.map(TagName), generic.map(TagName))
+      Tag(names.map(new TagName(_)), generic.map(new TagName(_)))
     }
   }
 
-  case class TagName(name: String) {
-    lazy val normalized: String = normalize(name)
+  case class TagName(name: String, normalized: String) {
+    def this(name: String) = this(name, normalize(name))
 
     override def equals(obj: Any): Boolean = obj match {
       case t: TagName => this.normalized == t.normalized
@@ -173,6 +173,7 @@ object Manifest {
     def singleByte(character: Char): Char = {
       val c = character.toInt
       if ((c >= '０' && c <= '９') || (c >= 'Ａ' && c <= 'Ｚ') || (c >= 'ａ' && c <= 'ｚ'))
+        // 0xFEE0 は、半角と全角のオフセット
         (c  - 0xFEE0).toChar
       else
         character
