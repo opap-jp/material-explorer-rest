@@ -151,6 +151,8 @@ object Manifest {
 
   /**
     * 拡張子の集合で構成された述語です。
+    *
+    * @param extensions 判定に用いる、拡張子の集合
     */
   case class ExtensionSetPredicate(extensions: Seq[String]) extends FilePredicate
 
@@ -158,14 +160,16 @@ object Manifest {
 
   /**
     * 文字列を、タグの内部表現として正規化します。
+    * <ul>
+    *   <li>全角英数は半角英数に変換されます</li>
+    *   <li>カタカナはひらがなに変換されます</li>
+    *   <li>大文字は小文字に変換されます</li>
+    * </ul>
     *
     * @param target 正規化の対象
     * @return 正規化された文字列
     */
   def normalize(target: String): String = {
-    /**
-      * 全角英数を半角英数に変換します。
-      */
     def singleByte(character: Char): Char = {
       val c = character.toInt
       if ((c >= '０' && c <= '９') || (c >= 'Ａ' && c <= 'Ｚ') || (c >= 'ａ' && c <= 'ｚ'))
@@ -174,9 +178,6 @@ object Manifest {
         character
     }
 
-    /**
-      * カタカナをひらがなに変換します。
-      */
     def kana(character: Char): Char = {
       val c = character.toInt
       if (c >= 'ァ' && c <= 'ン')
