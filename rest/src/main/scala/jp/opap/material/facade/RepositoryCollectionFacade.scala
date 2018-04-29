@@ -11,7 +11,7 @@ import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDir
 import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
-import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, MetaData, RepositoryConfig}
+import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(val context: Context, val services: ServiceBundle,
@@ -130,11 +130,11 @@ class RepositoryCollectionFacade(val context: Context, val services: ServiceBund
     component match {
       case IntermediateDirectory(id, name, path, children) => {
         val metaChildren = children.map(x => x._1 -> metaComponent(x._2))
-        MetaDirectory(id, name, MetaData(), metaChildren)
+        MetaDirectory(id, name, Metadata(), metaChildren)
       }
       case IntermediateFile(id, name, path) =>
         // TODO: ここで、メタデータを参照するために兄弟ファイル（name.yaml）を参照できないといけない。
-        MetaFile(id, name, MetaData())
+        MetaFile(id, name, Metadata())
     }
   }
 
