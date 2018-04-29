@@ -11,7 +11,7 @@ import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDir
 import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
-import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, RepositoryConfig}
+import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, Metadata, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(val context: Context, val services: ServiceBundle,
