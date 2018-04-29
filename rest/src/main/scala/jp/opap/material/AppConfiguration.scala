@@ -25,4 +25,8 @@ class AppConfiguration extends Configuration {
   @BeanProperty
   @NotEmpty
   var imageMagickHost: String = _
+
+  @BeanProperty
+  @NotEmpty
+  var metadataFileName: String = "material-explorer.yaml"
 }
