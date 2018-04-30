@@ -2,7 +2,8 @@ package jp.opap.material.model
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup}
+import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, TagGroup}
+import jp.opap.material.model.Tag.DeclaredTag
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
@@ -13,14 +14,14 @@ class ManifestTest extends FunSpec {
       val expected = (List(), Manifest(
         List(
           TagGroup(Category.Author, Category.Author.defaultName.get, List(
-            Tag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
-            Tag.create(List("水雪"), Some("藻")),
+            DeclaredTag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
+            DeclaredTag.create(List("水雪"), Some("藻")),
           )),
           TagGroup(Category.Common, "キャラクター", List(
-            Tag.create(List("祝園アカネ", "アカネ"), None),
-            Tag.create(List(), Some("少佐")),
-            Tag.create(List("山家宏佳", "宏佳"), None),
-            Tag.create(List("垂水結菜", "結菜"), None),
+            DeclaredTag.create(List("祝園アカネ", "アカネ"), None),
+            DeclaredTag.create(List(), Some("少佐")),
+            DeclaredTag.create(List("山家宏佳", "宏佳"), None),
+            DeclaredTag.create(List("垂水結菜", "結菜"), None),
           )),
         ), List(Selector(Inclusive, ExtensionSetPredicate("psd,ai,png,jpg,jpeg,pdf,wav,flac,mp3,blender".split(","))))
       ))
@@ -34,11 +35,11 @@ class ManifestTest extends FunSpec {
       val expectedManifest = Manifest(
         List(
           TagGroup(Category.Common, "キャラクター", List(
-            Tag.create(List("アカネ"), None),
+            DeclaredTag.create(List("アカネ"), None),
           )),
           TagGroup(Category.Author, Category.Author.defaultName.get, List(
-            Tag.create(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None),
-            Tag.create(List("水雪"), None),
+            DeclaredTag.create(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None),
+            DeclaredTag.create(List("水雪"), None),
           )),
         ), List()
       )
