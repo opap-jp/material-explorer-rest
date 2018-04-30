@@ -22,17 +22,22 @@ object Manifest {
   val WARNING_CATEGORY_NAME_REQUIRED: String = "カテゴリ %1$s には name が必要です。"
   val WARNING_DUPLICATED_LABEL: String = "%1$s - このラベルは重複しています。"
   val WARNING_SELECTOR_MODE_REQUIRED: String = "include または exclude が必要です。"
+  val WARNING_EMPTY: String = "names または generic_replacement に一つ以上のラベルが必要です。"
 
   def fromYaml(document: Node):  (Seq[GlobalWarning], Manifest) = {
     def extractTagGroup(node: Node): (Seq[GlobalWarning], Option[TagGroup]) = {
       def extractTag(node: Node): Either[GlobalWarning, Tag]  = withWarning {
-
         val generic = node("generic_replacement").string.option
         val names = node("names") match {
           case StringNode(name, _) => List(name)
           case x: ListNode => x.map(y => y.string.get).toList
         }
-        Tag.create(names, generic)
+
+        val tag = Tag.create(names, generic)
+        if (tag.names.nonEmpty || tag.generic.nonEmpty)
+          tag
+        else
+          throw GlobalException(WARNING_EMPTY, Some(node))
       }
 
       withWarnings {
@@ -73,12 +78,13 @@ object Manifest {
       val duplicationDictionary = duplications.toMap
 
       val m = manifest.copy(tagGroups = manifest.tagGroups.map(group => {
-        group.copy(tags = group.tags
+        // 重複したラベルが消去されたことでタグが空になっていることがあるので、そのようなタグを消去する。
+        val filtered = group.tags
           .map(tag => {
             tag.copy(names = tag.names.filter(n => !duplicatedNames.contains(n.normalized)),
               generic = tag.generic.filter(n => !duplicatedNames.contains(n.normalized)))
           }).filter(tag => tag.names.nonEmpty || tag.generic.nonEmpty)
-        )
+        group.copy(tags = filtered)
       }))
 
       val w = duplicatedNames.map(n => new GlobalWarning(UUID.randomUUID(), WARNING_DUPLICATED_LABEL.format(duplicationDictionary(n).head.name)))

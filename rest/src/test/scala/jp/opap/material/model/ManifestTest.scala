@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup}
+import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup, WARNING_EMPTY}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
@@ -12,15 +12,15 @@ class ManifestTest extends FunSpec {
       val actual = Manifest.fromYaml(Yaml.parse(data))
       val expected = (List(), Manifest(
         List(
-          TagGroup(Category.Common, "キャラクター", List(
-            Tag.create(List("祝園アカネ", "アカネ"), None),
-            Tag.create(List("少佐"), None),
-            Tag.create(List("山家宏佳", "宏佳"), None),
-            Tag.create(List("垂水結菜", "結菜"), None),
-          )),
           TagGroup(Category.Author, Category.Author.defaultName.get, List(
             Tag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
-            Tag.create(List("水雪"), Option("藻")),
+            Tag.create(List("水雪"), Some("藻")),
+          )),
+          TagGroup(Category.Common, "キャラクター", List(
+            Tag.create(List("祝園アカネ", "アカネ"), None),
+            Tag.create(List(), Some("少佐")),
+            Tag.create(List("山家宏佳", "宏佳"), None),
+            Tag.create(List("垂水結菜", "結菜"), None),
           )),
         ), List(Selector(Inclusive, ExtensionSetPredicate("psd,ai,png,jpg,jpeg,pdf,wav,flac,mp3,blender".split(","))))
       ))
@@ -60,18 +60,14 @@ class ManifestTest extends FunSpec {
       assert(actual._2 == Manifest(List(), List()))
     }
 
-    it("タグ名のリストが空のとき、その項目は無視される") {
+    it("タグ名のリストが空のとき、その項目は無視され、警告が出力される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-empty.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      val expected = (List(), Manifest(
-        List(
-          TagGroup(Category.Common, "キャラクター", List())
-        ),
-        List()
-      ))
+      val expectedManifest = Manifest(List(TagGroup(Category.Common, "キャラクター", List())), List())
 
-      assert(actual == expected)
+      assert(actual._1.head.message == "/tag_groups[0]/tags[0]: " + Manifest.WARNING_EMPTY)
+      assert(actual._2 == expectedManifest)
     }
 
     it("tag_groups がないとき、警告が出力される") {

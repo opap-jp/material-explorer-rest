@@ -1,17 +1,19 @@
 tag_groups:
     -
-      name: キャラクター
-      tags:
-        - names: [祝園アカネ, アカネ]
-        - names: 少佐
-        - names: [山家宏佳, 宏佳]
-        - names: [垂水結菜, 結菜]
-    -
       category: author
       tags:
         - names: [Butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
+        # generic_replacement を持つタグ
         - generic_replacement: 藻
           names: 水雪
+    -
+      name: キャラクター
+      tags:
+        - names: [祝園アカネ, アカネ]
+        # generic_replacement のみを持つタグ
+        - generic_replacement: 少佐
+        - names: [山家宏佳, 宏佳]
+        - names: [垂水結菜, 結菜]
 selectors:
   - include:
       extensions: [psd, ai, png, jpg, jpeg, pdf, wav, flac, mp3, blender]
