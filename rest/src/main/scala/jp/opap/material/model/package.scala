@@ -13,6 +13,7 @@ package object model {
   val WARNING_KEY_REQUIRED: String = "%1$s が必要です。"
   val WARNING_UNSUPPORTED_MAPPING_KEY: String = "対応していない形式のキーを持つマッピングがあります。"
 
+  @deprecated
   def withWarning[T](supplier: => T): Either[GlobalWarning, T] = {
     try {
       Yaml {
@@ -25,6 +26,7 @@ package object model {
     }
   }
 
+  @deprecated
   def withWarnings[T](supplier: => (Seq[GlobalWarning], T)): (Seq[GlobalWarning], Option[T]) = {
     try {
       val s = supplier
