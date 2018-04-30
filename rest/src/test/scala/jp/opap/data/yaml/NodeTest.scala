@@ -266,8 +266,12 @@ class NodeTest extends FunSpec {
 }
 
 object NodeTest {
-  def getNode(key: String): Node = {
+  lazy val types: Node = {
     val data = Tests.getResourceAsStrean("data/yaml/types.yaml")
-    Yaml.parse(data)("types")(key)
+    Yaml.parse(data)("types")
+  }
+
+  def getNode(key: String): Node = {
+    this.types(key)
   }
 }
