@@ -5,6 +5,7 @@ import java.util.UUID
 import jp.opap.data.yaml.InternalNode.ListNode
 import jp.opap.data.yaml.Leaf.StringNode
 import jp.opap.data.yaml.Node
+import jp.opap.data.yaml.YamlException.TypeException
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
 import jp.opap.material.model.Manifest.{Selector, TagGroup}
 import jp.opap.material.model.Warning.GlobalWarning
@@ -31,6 +32,7 @@ object Manifest {
         val names = node("names") match {
           case StringNode(name, _) => List(name)
           case x: ListNode => x.map(y => y.string.get).toList
+          case x => throw TypeException(x)
         }
 
         val tag = Tag.create(names, generic)

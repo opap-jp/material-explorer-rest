@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup, WARNING_EMPTY}
+import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, Tag, TagGroup}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
