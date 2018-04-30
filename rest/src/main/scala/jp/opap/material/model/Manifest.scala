@@ -108,7 +108,6 @@ object Manifest {
 
   case class TagGroup(category: Category, name: String, tags: Seq[DeclaredTag])
 
-
   /**
     * タグのカテゴリを表現します。
     *
