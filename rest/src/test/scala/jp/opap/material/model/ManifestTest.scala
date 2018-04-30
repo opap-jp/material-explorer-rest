@@ -43,10 +43,10 @@ class ManifestTest extends FunSpec {
         ), List()
       )
 
-      assert(actual._1.head.message == Manifest.WARNING_DUPLICATED_LABEL.format("祝園アカネ"))
-      assert(actual._1(1).message == Manifest.WARNING_DUPLICATED_LABEL.format("井二かける"))
-      assert(actual._1(2).message == Manifest.WARNING_DUPLICATED_LABEL.format("藻"))
-      assert(actual._1(3).message == Manifest.WARNING_DUPLICATED_LABEL.format("Butameron"))
+      assert(actual._1.head.message == Manifest.WARNING_DUPLICATED_NAME.format("祝園アカネ"))
+      assert(actual._1(1).message == Manifest.WARNING_DUPLICATED_NAME.format("井二かける"))
+      assert(actual._1(2).message == Manifest.WARNING_DUPLICATED_NAME.format("藻"))
+      assert(actual._1(3).message == Manifest.WARNING_DUPLICATED_NAME.format("Butameron"))
 
       assert(actual._2 == expectedManifest)
     }
@@ -66,7 +66,7 @@ class ManifestTest extends FunSpec {
 
       val expectedManifest = Manifest(List(TagGroup(Category.Common, "キャラクター", List())), List())
 
-      assert(actual._1.head.message == "/tag_groups[0]/tags[0]: " + Manifest.WARNING_EMPTY)
+      assert(actual._1.head.message == "/tag_groups[0]/tags[0]: " + Manifest.WARNING_EMPTY_NAME)
       assert(actual._2 == expectedManifest)
     }
 
