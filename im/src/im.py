@@ -12,7 +12,7 @@ def resize():
         height = int(request.form['height']) if request.form['height'] is not None else None
         data = request.files['data']
         if (width is None or height is None):
-            raise ValueError("Either of width and height are required.")
+            raise ValueError("Both of width and height are required.")
         if (width <= 0 or width > MAX_THUMB_LENGTH):
             raise ValueError("The value of width is invalid. A width must be (0, {0}]. (The value was {1}.)".format(MAX_THUMB_LENGTH, width))
         if (height is None or height <= 0 or height > MAX_THUMB_LENGTH):
