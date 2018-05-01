@@ -9,7 +9,7 @@ object Components {
 
     final override def toString: String = {
       this match {
-        case dir: IntermediateDirectory => s"${dir.path} (${dir.children.size})"
+        case dir: IntermediateDirectory => s"${dir.path.getOrElse("/")} (${dir.children.size})"
         case file: IntermediateFile => s"${file.path}"
       }
     }
