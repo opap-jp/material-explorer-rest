@@ -127,6 +127,7 @@ object Manifest {
 
     case object Common extends Category("common", None, false)
     case object Author extends Category("author", Some("作成者"), true)
+    case object Undeclared extends Category("undeclared", Some("未宣言"), true)
   }
 
   /**
