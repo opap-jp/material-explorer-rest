@@ -55,8 +55,8 @@ class ManifestTest extends FunSpec {
       assert(actual._2 == expectedManifest)
     }
 
-    it("不正なカテゴリのタググループは、タグ宣言から消去される") {
-      val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
+    it("不正な種別のタググループは、タグ宣言から消去される") {
+      val data = Tests.getResourceAsStrean("model/manifest/invalid-kind.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_GROUP_NAME_REQUIRED.format("common"))
