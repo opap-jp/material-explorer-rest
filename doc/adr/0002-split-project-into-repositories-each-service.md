@@ -24,6 +24,7 @@ opap-jp/material-explorer をサービスごとのリポジトリに分割しま
   そのため、今後は Docker Compose の設定ファイルでは opap-jp/material-explorer 内のソースではなくそれぞれのサービスの GitHub リポジトリを参照することになるでしょう。
 - opap-jp/material-explorer は、主に Docker Compose のためのリポジトリになります。
 - 軽量アーキテクチャ決定記録を含む各ドキュメントは、それぞれのサービスのリポジトリに移動されません。
-  すべてのドキュメントが opap-jp/material-explorer で一元的に管理されます。
+  すべてのドキュメントが opap-jp/material-explorer で一元的に管理されます。（ルートディレクトリの `README.md` を除く。）
+- CI で統合テストや UI テストを行なうリポジトリを作れるかも知れません。
 
 https://github.com/opap-jp/material-explorer/issues/13
