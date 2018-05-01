@@ -26,7 +26,7 @@ object Manifest {
   val WARNING_SELECTOR_MODE_REQUIRED: String = "include または exclude が必要です。"
   val WARNING_EMPTY_NAME: String = "names または generic_replacement に一つ以上の名称が必要です。"
 
-  def fromYaml(document: Node):  (Seq[GlobalWarning], Manifest) = {
+  def fromYaml(document: Node, idGenerator: () => UUID): (Seq[GlobalWarning], Manifest) = {
     def extractTagGroup(node: Node): (Seq[GlobalWarning], Option[TagGroup]) = {
       def extractTag(node: Node): Either[GlobalWarning, DeclaredTag]  = withWarning {
         val generic = node("generic_replacement").string.option
@@ -37,7 +37,7 @@ object Manifest {
           case x => throw TypeException(x)
         }
 
-        val tag = DeclaredTag.create(names, generic)
+        val tag = new DeclaredTag(names, generic, idGenerator)
         if (tag.names.nonEmpty || tag.generic.nonEmpty)
           tag
         else

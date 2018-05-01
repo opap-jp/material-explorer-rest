@@ -2,6 +2,7 @@ package jp.opap.material
 
 import java.io.File
 import java.util
+import java.util.UUID
 import javax.servlet.DispatcherType
 
 import com.mongodb.MongoClient
@@ -66,7 +67,7 @@ object MaterialExplorer extends Application[AppConfiguration] {
   }
 
   def updateRepositoryData(configuration: AppConfiguration, services: ServiceBundle, eventEmitter: RepositoryDataEventEmitter): Thread = {
-    val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)))
+    val manifest = Manifest.fromYaml(Yaml.parse(new File(configuration.manifest)), UUID.randomUUID)
     val repositories = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
 
     val context = RepositoryCollectionFacade.Context(manifest, repositories)
