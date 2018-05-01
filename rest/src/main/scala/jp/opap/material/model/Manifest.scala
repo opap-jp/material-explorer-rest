@@ -8,7 +8,7 @@ import jp.opap.data.yaml.Node
 import jp.opap.data.yaml.YamlException.TypeException
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
 import jp.opap.material.model.Manifest.{Selector, TagGroup}
-import jp.opap.material.model.Tag.DeclaredTag
+import jp.opap.material.model.Tag
 import jp.opap.material.model.Warning.GlobalWarning
 
 import scala.util.matching.Regex
@@ -28,7 +28,7 @@ object Manifest {
 
   def fromYaml(document: Node):  (Seq[GlobalWarning], Manifest) = {
     def extractTagGroup(node: Node): (Seq[GlobalWarning], Option[TagGroup]) = {
-      def extractTag(node: Node): Either[GlobalWarning, DeclaredTag]  = withWarning {
+      def extractTag(node: Node): Either[GlobalWarning, Tag]  = withWarning {
         val generic = node("generic_replacement").string.option
         val names = node("names") match {
           case StringNode(name, _) => List(name)
@@ -37,7 +37,7 @@ object Manifest {
           case x => throw TypeException(x)
         }
 
-        val tag = DeclaredTag.create(names, generic)
+        val tag = Tag.create(names, generic)
         if (tag.names.nonEmpty || tag.generic.nonEmpty)
           tag
         else
@@ -106,7 +106,7 @@ object Manifest {
     validate(manifest._1, manifest._2.getOrElse(Manifest(Seq(), Seq())))
   }
 
-  case class TagGroup(category: Category, name: String, tags: Seq[DeclaredTag])
+  case class TagGroup(category: Category, name: String, tags: Seq[Tag])
 
 
   /**
