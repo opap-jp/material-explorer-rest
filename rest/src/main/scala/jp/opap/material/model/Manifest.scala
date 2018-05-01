@@ -8,7 +8,6 @@ import jp.opap.data.yaml.Node
 import jp.opap.data.yaml.YamlException.TypeException
 import jp.opap.material.data.Collections.{EitherSeq, Seqs}
 import jp.opap.material.model.Manifest.{Selector, TagGroup}
-import jp.opap.material.model.Tag
 import jp.opap.material.model.Warning.GlobalWarning
 
 import scala.util.matching.Regex
@@ -20,11 +19,11 @@ case class Manifest(tagGroups: Seq[TagGroup], selectors: Seq[Selector])
 
 object Manifest {
   val WARNING_FAILED_TO_LOAD: String = "タグ定義ファイルの取得に失敗しました。"
-  val WARNING_NO_SUCH_CATEGORY_EXISTS: String = "%1$s - そのようなカテゴリはありません。"
-  val WARNING_CATEGORY_NAME_REQUIRED: String = "カテゴリ %1$s には name が必要です。"
+  val WARNING_NO_SUCH_KIND_EXISTS: String = "%1$s - そのような種別はありません。"
+  val WARNING_GROUP_NAME_REQUIRED: String = "グループ %1$s には name が必要です。"
   val WARNING_DUPLICATED_NAME: String = "%1$s - この名称は重複しています。"
   val WARNING_SELECTOR_MODE_REQUIRED: String = "include または exclude が必要です。"
-  val WARNING_EMPTY_NAME: String = "names または generic_replacement に一つ以上の名称が必要です。"
+  val WARNING_NAME_REQUIRED: String = "names または generic_replacement に一つ以上の名称が必要です。"
 
   def fromYaml(document: Node):  (Seq[GlobalWarning], Manifest) = {
     def extractTagGroup(node: Node): (Seq[GlobalWarning], Option[TagGroup]) = {
@@ -41,23 +40,23 @@ object Manifest {
         if (tag.names.nonEmpty || tag.generic.nonEmpty)
           tag
         else
-          throw GlobalException(WARNING_EMPTY_NAME, Some(node))
+          throw GlobalException(WARNING_NAME_REQUIRED, Some(node))
       }
 
       withWarnings {
-        val category = node("category").string.option.map(x => Category.parse(x) match {
+        val kind = node("kind").string.option.map(x => Kind.parse(x) match {
           case Some(y) => y
-          case None => throw GlobalException(WARNING_NO_SUCH_CATEGORY_EXISTS.format(x), Option(node))
-        }).getOrElse(Category.Common)
+          case None => throw GlobalException(WARNING_NO_SUCH_KIND_EXISTS.format(x), Option(node))
+        }).getOrElse(Kind.Common)
 
-        val name = node("name").string.option.getOrElse(category.defaultName match {
+        val name = node("name").string.option.getOrElse(kind.defaultName match {
           case Some(value) => value
-          case None => throw GlobalException(WARNING_CATEGORY_NAME_REQUIRED.format(category.identifier), Option(node))
+          case None => throw GlobalException(WARNING_GROUP_NAME_REQUIRED.format(kind.identifier), Option(node))
         })
 
         val tags = node("tags").list.map(extractTag).toList
 
-        tags.left -> TagGroup(category, name, tags.right)
+        tags.left -> TagGroup(kind, name, tags.right)
       }
     }
 
@@ -106,28 +105,28 @@ object Manifest {
     validate(manifest._1, manifest._2.getOrElse(Manifest(Seq(), Seq())))
   }
 
-  case class TagGroup(category: Category, name: String, tags: Seq[Tag])
+  case class TagGroup(kind: Kind, name: String, tags: Seq[Tag])
 
 
   /**
-    * タグのカテゴリを表現します。
+    * タグの種別を表現します。
     *
-    * @param identifier このカテゴリの識別子。タグ定義ファイルで使用されることがあります。
-    * @param defaultName 既定の名称
-    * @param unique true の場合、このカテゴリのタググループはタグ定義に1つしか存在できません。
+    * @param identifier この種別の識別子。タグ定義ファイルで使用されることがあります。
+    * @param defaultName 既定の名称。None の場合、この種別が設定されたグループには名前が必要です。
+    * @param unique true の場合、この種別のグループはタグ定義に1つしか存在できません。
     */
-  sealed abstract class Category(val identifier: String, val defaultName: Option[String], val unique: Boolean)
+  sealed abstract class Kind(val identifier: String, val defaultName: Option[String], val unique: Boolean)
 
-  object Category {
-    def parse(value: String): Option[Category] = value match {
+  object Kind {
+    def parse(value: String): Option[Kind] = value match {
       case "common" => Option(Common)
       case "author" => Option(Author)
       case _ => None
     }
 
-    case object Common extends Category("common", None, false)
-    case object Author extends Category("author", Some("作成者"), true)
-    case object Undeclared extends Category("undeclared", Some("未宣言"), true)
+    case object Common extends Kind("common", None, false)
+    case object Author extends Kind("author", Some("作成者"), true)
+    case object Undeclared extends Kind("undeclared", Some("未宣言"), true)
   }
 
   /**
@@ -189,4 +188,3 @@ object Manifest {
       .toLowerCase
   }
 }
-

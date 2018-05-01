@@ -2,7 +2,7 @@ package jp.opap.material.model
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
-import jp.opap.material.model.Manifest.{Category, ExtensionSetPredicate, Inclusive, Selector, TagGroup}
+import jp.opap.material.model.Manifest.{Kind, ExtensionSetPredicate, Inclusive, Selector, TagGroup}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
@@ -12,11 +12,11 @@ class ManifestTest extends FunSpec {
       val actual = Manifest.fromYaml(Yaml.parse(data))
       val expected = (List(), Manifest(
         List(
-          TagGroup(Category.Author, Category.Author.defaultName.get, List(
+          TagGroup(Kind.Author, Kind.Author.defaultName.get, List(
             Tag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
             Tag.create(List("水雪"), Some("藻")),
           )),
-          TagGroup(Category.Common, "キャラクター", List(
+          TagGroup(Kind.Common, "キャラクター", List(
             Tag.create(List("祝園アカネ", "アカネ"), None),
             Tag.create(List(), Some("少佐")),
             Tag.create(List("山家宏佳", "宏佳"), None),
@@ -33,20 +33,20 @@ class ManifestTest extends FunSpec {
       val actual = Manifest.fromYaml(Yaml.parse(data))
       val expectedManifest = Manifest(
         List(
-          TagGroup(Category.Common, "キャラクター", List(
-            Tag.create(List("アカネ"), None),
-          )),
-          TagGroup(Category.Author, Category.Author.defaultName.get, List(
+          TagGroup(Kind.Author, Kind.Author.defaultName.get, List(
             Tag.create(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None),
             Tag.create(List("水雪"), None),
+          )),
+          TagGroup(Kind.Common, "キャラクター", List(
+            Tag.create(List("アカネ"), None),
           )),
         ), List()
       )
 
-      assert(actual._1.head.message == Manifest.WARNING_DUPLICATED_NAME.format("祝園アカネ"))
+      assert(actual._1.head.message == Manifest.WARNING_DUPLICATED_NAME.format("Butameron"))
       assert(actual._1(1).message == Manifest.WARNING_DUPLICATED_NAME.format("井二かける"))
       assert(actual._1(2).message == Manifest.WARNING_DUPLICATED_NAME.format("藻"))
-      assert(actual._1(3).message == Manifest.WARNING_DUPLICATED_NAME.format("Butameron"))
+      assert(actual._1(3).message == Manifest.WARNING_DUPLICATED_NAME.format("祝園アカネ"))
 
       assert(actual._2 == expectedManifest)
     }
@@ -55,8 +55,8 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_CATEGORY_NAME_REQUIRED.format("common"))
-      assert(actual._1(1).message == "/tag_groups[1]: " + Manifest.WARNING_NO_SUCH_CATEGORY_EXISTS.format("foo"))
+      assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_GROUP_NAME_REQUIRED.format("common"))
+      assert(actual._1(1).message == "/tag_groups[1]: " + Manifest.WARNING_NO_SUCH_KIND_EXISTS.format("foo"))
       assert(actual._2 == Manifest(List(), List()))
     }
 
@@ -64,9 +64,9 @@ class ManifestTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-empty.yaml")
       val actual = Manifest.fromYaml(Yaml.parse(data))
 
-      val expectedManifest = Manifest(List(TagGroup(Category.Common, "キャラクター", List())), List())
+      val expectedManifest = Manifest(List(TagGroup(Kind.Common, "キャラクター", List())), List())
 
-      assert(actual._1.head.message == "/tag_groups[0]/tags[0]: " + Manifest.WARNING_EMPTY_NAME)
+      assert(actual._1.head.message == "/tag_groups[0]/tags[0]: " + Manifest.WARNING_NAME_REQUIRED)
       assert(actual._2 == expectedManifest)
     }
 

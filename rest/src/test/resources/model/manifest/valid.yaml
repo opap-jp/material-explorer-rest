@@ -1,6 +1,6 @@
 tag_groups:
     -
-      category: author
+      kind: author
       tags:
         - names: [Butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
         # generic_replacement を持つタグ

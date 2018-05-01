@@ -3,7 +3,7 @@ tag_groups:
       tags:
         - names: [祝園アカネ]
     -
-      category: foo
+      kind: foo
       tags:
         - names: [山家宏佳]
 selectors: []
