@@ -130,11 +130,11 @@ class RepositoryCollectionFacade(val context: Context, val services: ServiceBund
     component match {
       case IntermediateDirectory(id, name, path, children) => {
         val metaChildren = children.map(x => x._1 -> metaComponent(x._2))
-        MetaDirectory(id, name, Metadata(), metaChildren)
+        MetaDirectory(id, name, Metadata(Seq()), metaChildren)
       }
       case IntermediateFile(id, name, path) =>
         // TODO: ここで、メタデータを参照するために兄弟ファイル（name.yaml）を参照できないといけない。
-        MetaFile(id, name, Metadata())
+        MetaFile(id, name, Metadata(Seq()))
     }
   }
 

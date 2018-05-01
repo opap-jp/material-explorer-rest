@@ -1,26 +1,30 @@
 package jp.opap.material.model
 
+import java.util.UUID
+
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
 import jp.opap.material.model.Manifest.{Kind, ExtensionSetPredicate, Inclusive, Selector, TagGroup}
 import org.scalatest.FunSpec
 
 class ManifestTest extends FunSpec {
+  val id: UUID = UUID.randomUUID()
+
   describe("fromYaml") {
     it("妥当なタグ宣言") {
       val data = Tests.getResourceAsStrean("model/manifest/valid.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
       val expected = (List(), Manifest(
         List(
           TagGroup(Kind.Author, Kind.Author.defaultName.get, List(
-            Tag.create(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None),
-            Tag.create(List("水雪"), Some("藻")),
+            new Tag(List("Butameron", "豚メロン", "井二かける", "Kakeru IBUTA", "IBUTA Kakeru"), None, () => this.id),
+            new Tag(List("水雪"), Some("藻"), () => this.id),
           )),
           TagGroup(Kind.Common, "キャラクター", List(
-            Tag.create(List("祝園アカネ", "アカネ"), None),
-            Tag.create(List(), Some("少佐")),
-            Tag.create(List("山家宏佳", "宏佳"), None),
-            Tag.create(List("垂水結菜", "結菜"), None),
+            new Tag(List("祝園アカネ", "アカネ"), None, () => this.id),
+            new Tag(List(), Some("少佐"), () => this.id),
+            new Tag(List("山家宏佳", "宏佳"), None, () => this.id),
+            new Tag(List("垂水結菜", "結菜"), None, () => this.id),
           )),
         ), List(Selector(Inclusive, ExtensionSetPredicate("psd,ai,png,jpg,jpeg,pdf,wav,flac,mp3,blender".split(","))))
       ))
@@ -30,15 +34,15 @@ class ManifestTest extends FunSpec {
 
     it("同じタグ名があるとき、そのタグ名はタグ宣言全体から消去される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-duplicated.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
       val expectedManifest = Manifest(
         List(
           TagGroup(Kind.Author, Kind.Author.defaultName.get, List(
-            Tag.create(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None),
-            Tag.create(List("水雪"), None),
+            new Tag(List("豚メロン", "Kakeru IBUTA", "IBUTA Kakeru"), None, () => this.id),
+            new Tag(List("水雪"), None, () => this.id),
           )),
           TagGroup(Kind.Common, "キャラクター", List(
-            Tag.create(List("アカネ"), None),
+            new Tag(List("アカネ"), None, () => this.id),
           )),
         ), List()
       )
@@ -53,7 +57,7 @@ class ManifestTest extends FunSpec {
 
     it("不正なカテゴリのタググループは、タグ宣言から消去される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-category.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       assert(actual._1.head.message == "/tag_groups[0]: " + Manifest.WARNING_GROUP_NAME_REQUIRED.format("common"))
       assert(actual._1(1).message == "/tag_groups[1]: " + Manifest.WARNING_NO_SUCH_KIND_EXISTS.format("foo"))
@@ -62,7 +66,7 @@ class ManifestTest extends FunSpec {
 
     it("タグ名のリストが空のとき、その項目は無視され、警告が出力される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-empty.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       val expectedManifest = Manifest(List(TagGroup(Kind.Common, "キャラクター", List())), List())
 
@@ -72,7 +76,7 @@ class ManifestTest extends FunSpec {
 
     it("tag_groups がないとき、警告が出力される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-tag-groups.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       assert(actual._1.head.message == ": " + WARNING_KEY_REQUIRED.format("tag_groups"))
       assert(actual._2 == Manifest(List(), List()))
@@ -80,7 +84,7 @@ class ManifestTest extends FunSpec {
 
     it("selectors がないとき、警告が出力される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-missing-selectors.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       assert(actual._1.head.message == ": " + WARNING_KEY_REQUIRED.format("selectors"))
       assert(actual._2 == Manifest(List(), List()))
@@ -88,7 +92,7 @@ class ManifestTest extends FunSpec {
 
     it("ファイルセレクタに include も exclude もないとき、警告が出力される") {
       val data = Tests.getResourceAsStrean("model/manifest/invalid-selector.yaml")
-      val actual = Manifest.fromYaml(Yaml.parse(data))
+      val actual = Manifest.fromYaml(Yaml.parse(data), () => this.id)
 
       assert(actual._1.head.message == "/selectors[0]: " + Manifest.WARNING_SELECTOR_MODE_REQUIRED)
       assert(actual._2 == Manifest(List(), List()))
