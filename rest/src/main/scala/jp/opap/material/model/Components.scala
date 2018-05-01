@@ -16,15 +16,23 @@ object Components {
   }
 
   /**
+    * ディレクトリの中間表現です。
     *
-    * @param id
-    * @param name
-    * @param path empty のとき、ルート要素です。
-    * @param children
+    * @param id ID
+    * @param name ディレクトリ名
+    * @param path パス。empty のとき、ルート要素です。
+    * @param children このディレクトリに属するファイルやフォルダ
     */
   case class IntermediateDirectory(id: UUID, name: String, path: Option[String], children: Map[String, IntermediateComponent]) extends IntermediateComponent {
   }
 
+  /**
+    * ファイルの中間表現です。
+    *
+    * @param id ID
+    * @param name ファイル名
+    * @param path パス
+    */
   case class IntermediateFile(id: UUID, name: String, path: String) extends IntermediateComponent {
   }
 }
