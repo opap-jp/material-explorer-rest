@@ -8,7 +8,7 @@ tag_groups:
       - names: 少佐
       - names: 英賀保芽依
   -
-    category: author
+    kind: author
     tags:
       - names: [Butameron, 豚メロン, 井二かける, Kakeru IBUTA, IBUTA Kakeru]
       # generic_replacement は、複数の古いタグを別の名前で上書きして総称するときに使います。
