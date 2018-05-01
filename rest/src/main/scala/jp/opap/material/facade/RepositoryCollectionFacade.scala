@@ -3,6 +3,7 @@ package jp.opap.material.facade
 import java.io.IOException
 import java.util.UUID
 
+import jp.opap.material.AppConfiguration
 import jp.opap.material.MaterialExplorer.ServiceBundle
 import jp.opap.material.facade.RepositoryCollectionFacade.Context
 import jp.opap.material.facade.RepositoryLoader.RepositoryLoaderFactory
@@ -14,9 +15,14 @@ import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
 import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, Metadata, RepositoryConfig}
 import org.slf4j.{Logger, LoggerFactory}
 
-class RepositoryCollectionFacade(val context: Context, val services: ServiceBundle,
-    val converters: Seq[MediaConverter], val loaderFactories: Seq[RepositoryLoaderFactory],
-    val eventEmitter: RepositoryDataEventEmitter) {
+class RepositoryCollectionFacade(
+  val context: Context,
+  val services: ServiceBundle,
+  val converters: Seq[MediaConverter],
+  val loaderFactories: Seq[RepositoryLoaderFactory],
+  val configuration: AppConfiguration,
+  val eventEmitter: RepositoryDataEventEmitter
+) {
   val LOG: Logger = LoggerFactory.getLogger(classOf[RepositoryCollectionFacade])
 
   def updateRepositories(): Unit = {

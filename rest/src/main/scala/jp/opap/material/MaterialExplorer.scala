@@ -74,12 +74,14 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val converters =Seq(new ImageConverter(new RestResize(configuration.imageMagickHost)))
     val loaders = Seq(new GitLabRepositoryLoaderFactory(configuration))
 
-    val facade = new RepositoryCollectionFacade(context, services, converters, loaders, eventEmitter)
+    val facade = new RepositoryCollectionFacade(context, services, converters, loaders, configuration, eventEmitter)
 
     new Thread(()  => facade.updateRepositories())
   }
 
-  class ServiceBundle(val repositoryDao: MongoRepositoryDao, val componentDao: MongoComponentDao,
-    val thumbnailDao: MongoThumbnailDao) {
-  }
+  class ServiceBundle(
+    val repositoryDao: MongoRepositoryDao,
+    val componentDao: MongoComponentDao,
+    val thumbnailDao: MongoThumbnailDao
+  )
 }
