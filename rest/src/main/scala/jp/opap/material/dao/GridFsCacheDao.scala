@@ -2,7 +2,7 @@ package jp.opap.material.dao
 
 import com.mongodb.client.MongoDatabase
 
-class MongoCacheDao(mongo: MongoDatabase) extends GridFsDao(mongo) with CacheDao {
+class GridFsCacheDao(mongo: MongoDatabase) extends GridFsDao(mongo) with CacheDao {
   override def insert(key: String, data: Array[Byte]): Unit = {
     val stream = this.bucket.openUploadStream(key)
     stream.write(data)
