@@ -144,17 +144,46 @@ class RepositoryCollectionFacade(
     }
   }
 
+  /**
+    * コンポーネントの木を、親への参照を保持したコンポーネントのリストに変換します。
+    *
+    * @param info リポジトリ情報
+    * @param tree コンポーネントの木。変換の対象です。
+    * @return 親への参照を保持したコンポーネントのリスト。これらのコンポーネントは子への参照を持ちません。
+    */
   def toList(info: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {
+    /**
+      * コンポーネントの木をリストに変換する関数です。
+      * 再帰的に呼びだされます。再帰の最初の呼び出しは、木のルート（ルートディレクトリ）に対してのみ行なわれます。
+      * <ol>
+      *   <li>再帰の最初として、木のルートに対して呼びだされたときのみマッチします。
+      *   自身のすべての子に対して再帰的な変換を行ない、それぞれの結果（リスト）を連結したリストを返します。</li>
+      *   <li>ディレクトリに対して呼び出されたとき、
+      *   自身のすべての子に対して再帰的な変換を行ない、自身と、それぞれの結果を連結したリストを連結したリストを返します。</li>
+      *   <li>ファイルに対して呼びだされたとき、再帰の底につき、このファイルからなる、要素が1個のリストを返します。</li>
+      * </ol>
+      *
+      * @param tree コンポーネントの木。変換の対象です。
+      * @param parentId 変換の対象のコンポーネントの親コンポーネントの ID。木のルートに関する呼び出しのときのみ None です。
+      * @return コンポーネントのリスト。ファイルとフォルダです。
+      */
     def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
+        case IntermediateDirectory(id, _, None, children) =>
+          // TODO: ルートディレクトリもコンポーネントとして返したほうがよいのではないか
+          children.values.flatMap(child => list(child, Option(id))).toList
         case IntermediateDirectory(id, name, Some(path), children) =>
           val dir = DirectoryEntry(id, info.id, parentId, name, path)
           dir :: children.values.flatMap(child => list(child, Option(dir.id))).toList
-        case IntermediateDirectory(id, _, None, children) => children.values.flatMap(child => list(child, Option(id))).toList
-        case IntermediateFile(id, name, path) => List(FileEntry(id, info.id, parentId, name, path))
+        // ファイルに対するリスト化は、要素が1個のリストを返します。
+        case IntermediateFile(id, name, path) =>
+          // ファイルは、必ず親ディレクトリを持つ。
+          List(FileEntry(id, info.id, Some(parentId.get), name, path))
       }
     }
 
+    // 再帰の最初の呼び出し。
+    // parentId として empty が与えられる唯一の呼び出しです。
     list(tree, Option.empty)
   }
 
