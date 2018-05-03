@@ -33,7 +33,7 @@ object Components {
     * @param name ファイル名
     * @param path パス
     */
-  case class IntermediateFile(id: UUID, name: String, path: String) extends IntermediateComponent {
+  case class IntermediateFile(id: UUID, name: String, path: String, blobId: String) extends IntermediateComponent {
   }
 }
 

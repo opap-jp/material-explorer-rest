@@ -5,9 +5,10 @@ export default interface ThumbnailFile {
         parentId: String,
         name: String,
         path: String,
+        blobId: String,
     },
     thumbnail: {
-        fileId: String,
+        id: String,
         width: number,
         height: number,
     }

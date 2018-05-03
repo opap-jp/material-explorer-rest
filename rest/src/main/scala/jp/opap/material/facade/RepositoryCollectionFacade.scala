@@ -54,7 +54,7 @@ class RepositoryCollectionFacade(
   }
 
   def updateRepository(loader: RepositoryLoader): Unit = {
-    def toMap(files: Seq[IntermediateFile]) = files.map(file => (file.path, file)).toMap
+    def toMap(files: Seq[IntermediateFile]): Map[String, IntermediateFile] = files.map(file => (file.path, file)).toMap
 
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新を開始しました。")
 
@@ -62,19 +62,18 @@ class RepositoryCollectionFacade(
     val savedRepository = this.services.repositoryDao.findById(info.id)
 
     // データベースに保存されている、ファイルのリストを取得します。
-    val storedFiles = this.services.componentDao.findFiles(info.id).map(_.toIntermediate)
+    // val storedFiles = this.services.componentDao.findFiles(info.id).map(_.toIntermediate)
 
     // リモートリポジトリから、変更されたファイルのリストを取得します。
     val changedResult = loader.loadChangedFiles(savedRepository)
 
-    // 変更されたファイルのキャッシュを削除します。
-    changedResult.files.foreach(file => loader.deleteCache(file.path))
+    // TODO: 変更されたファイルのキャッシュを削除します。
 
     // 保存されているファイルのリストに、変更されたファイルをマージします。変更されたファイルのみ、Id が変化します。
-    val mergedFiles = (toMap(storedFiles) ++ toMap(changedResult.files)).values.toList.sortBy(file => file.path)
+    // val mergedFiles = (toMap(storedFiles) ++ toMap(changedResult.files)).values.toList.sortBy(file => file.path)
 
     // ファイルのリストからファイルツリーを作ります。
-    val fileTree = intermediateTree(mergedFiles)
+    val fileTree = intermediateTree(changedResult.files.sortBy(file => file.path))
 
     // TODO: すべてのファイルやディレクトリについて、対応するメタデータ（*.yaml, *.md）があればそれを関連づけます。
     // このとき、マスタデータで宣言されていないタグについては警告データを登録します。
@@ -138,23 +137,52 @@ class RepositoryCollectionFacade(
         val metaChildren = children.map(x => x._1 -> metaComponent(x._2))
         MetaDirectory(id, name, Metadata(Seq()), metaChildren)
       }
-      case IntermediateFile(id, name, path) =>
+      case IntermediateFile(id, name, path, blobId) =>
         // TODO: ここで、メタデータを参照するために兄弟ファイル（name.yaml）を参照できないといけない。
         MetaFile(id, name, Metadata(Seq()))
     }
   }
 
+  /**
+    * コンポーネントの木を、親への参照を保持したコンポーネントのリストに変換します。
+    *
+    * @param info リポジトリ情報
+    * @param tree コンポーネントの木。変換の対象です。
+    * @return 親への参照を保持したコンポーネントのリスト。これらのコンポーネントは子への参照を持ちません。
+    */
   def toList(info: RepositoryInfo, tree: IntermediateComponent): List[ComponentEntry] = {
+    /**
+      * コンポーネントの木をリストに変換する関数です。
+      * 再帰的に呼びだされます。再帰の最初の呼び出しは、木のルート（ルートディレクトリ）に対してのみ行なわれます。
+      * <ol>
+      *   <li>再帰の最初として、木のルートに対して呼びだされたときのみマッチします。
+      *   自身のすべての子に対して再帰的な変換を行ない、それぞれの結果（リスト）を連結したリストを返します。</li>
+      *   <li>ディレクトリに対して呼び出されたとき、
+      *   自身のすべての子に対して再帰的な変換を行ない、自身と、それぞれの結果を連結したリストを連結したリストを返します。</li>
+      *   <li>ファイルに対して呼びだされたとき、再帰の底につき、このファイルからなる、要素が1個のリストを返します。</li>
+      * </ol>
+      *
+      * @param tree コンポーネントの木。変換の対象です。
+      * @param parentId 変換の対象のコンポーネントの親コンポーネントの ID。木のルートに関する呼び出しのときのみ None です。
+      * @return コンポーネントのリスト。ファイルとフォルダです。
+      */
     def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
+        case IntermediateDirectory(id, _, None, children) =>
+          // TODO: ルートディレクトリもコンポーネントとして返したほうがよいのではないか
+          children.values.flatMap(child => list(child, Option(id))).toList
         case IntermediateDirectory(id, name, Some(path), children) =>
           val dir = DirectoryEntry(id, info.id, parentId, name, path)
           dir :: children.values.flatMap(child => list(child, Option(dir.id))).toList
-        case IntermediateDirectory(id, _, None, children) => children.values.flatMap(child => list(child, Option(id))).toList
-        case IntermediateFile(id, name, path) => List(FileEntry(id, info.id, parentId, name, path))
+        // ファイルに対するリスト化は、要素が1個のリストを返します。
+        case IntermediateFile(id, name, path, blobId) =>
+          // ファイルは、必ず親ディレクトリを持つ。
+          List(FileEntry(id, info.id, Some(parentId.get), name, path, blobId))
       }
     }
 
+    // 再帰の最初の呼び出し。
+    // parentId として empty が与えられる唯一の呼び出しです。
     list(tree, Option.empty)
   }
 
@@ -163,12 +191,12 @@ class RepositoryCollectionFacade(
     // あったら、なにもしません。なければ、該当するパスのドキュメントを削除し、ダウンロードし、サムネイル生成、書き込み。
     this.converters.find(converter => converter.shouldDispatch(file))
       .foreach(converter => {
-        if (this.services.thumbnailDao.findById(file.id).isEmpty) {
+        if (this.services.thumbnailDao.find(file.blobId).isEmpty) {
           try {
             LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成します。")
-            val thumb = converter.convert(file, loader.loadFile(file.path, cache = true))
-            this.services.thumbnailDao.deleteByFile(file)
-            this.services.thumbnailDao.insert(thumb, file)
+            val data = this.services.cacheDao.loadIfAbsent(file.blobId, _ => loader.loadFile(file))
+            val (thumb, converted) = converter.convert(file, data)
+            this.services.thumbnailDao.insert(thumb, converted)
             LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルを生成しました。")
           } catch {
             case e: IOException =>
@@ -176,7 +204,10 @@ class RepositoryCollectionFacade(
                 Option(e.getMessage), file.repositoryId, file.path)
               // TODO: 警告の登録（現在はログ出力）
               LOG.info(warning.message)
+              e.printStackTrace()
           }
+        } else {
+          LOG.debug(s"${loader.info.id} - ${file.path} のサムネイルの存在を確認しました。")
         }
       })
   }

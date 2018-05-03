@@ -1,17 +1,14 @@
 package jp.opap.material.model
 
-import java.util.UUID
-
 import scala.beans.BeanProperty
 
+// TODO: サムネイルの ID は、ハッシュ値とする
 object Thumbnails {
   trait IThumbnail {
-    val fileId: UUID
+    val id: String
     val  width: Int
     val height: Int
   }
 
-  case class ThumbnailInfo(@BeanProperty fileId: UUID, @BeanProperty width: Int, @BeanProperty height: Int) extends IThumbnail
-
-  case class Thumbnail(@BeanProperty fileId: UUID, @BeanProperty data: Array[Byte], @BeanProperty width: Int, @BeanProperty height: Int) extends IThumbnail
+  case class ThumbnailInfo(@BeanProperty id: String, @BeanProperty width: Int, @BeanProperty height: Int) extends IThumbnail
 }

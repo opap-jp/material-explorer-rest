@@ -1,12 +1,12 @@
 package jp.opap.material.facade
 
-import java.io.File
-import java.nio.file.Files
 import java.util.UUID
 
+import com.google.common.io.ByteStreams
 import jp.opap.material.AppConfiguration
 import jp.opap.material.facade.GitLabRepositoryLoaderFactory.GitlabRepositoryInfo
 import jp.opap.material.facade.RepositoryLoader.{ChangedResult, RepositoryLoaderFactory}
+import jp.opap.material.model.ComponentEntry.FileEntry
 import jp.opap.material.model.Components.IntermediateFile
 import jp.opap.material.model.Repository
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
@@ -26,9 +26,7 @@ class GitLabRepositoryLoaderFactory(val config: AppConfiguration) extends Reposi
     override val info: GitlabRepositoryInfo = repositoryInfo
 
     val gitLab = new GitLabApi(ApiVersion.V4, repositoryInfo.host, null: String)
-    val store: File = new File(config.repositoryStore)
     var projectId: Int = _
-    var hashDictionary: Map[String, String] = _
 
     override def loadChangedFiles(repository: Option[Repository]): ChangedResult = {
       val projectApi = this.gitLab.getProjectApi
@@ -46,39 +44,17 @@ class GitLabRepositoryLoaderFactory(val config: AppConfiguration) extends Reposi
         .filter(item => item.getType == TreeItem.Type.BLOB)
         .seq
         .toSeq
-      this.hashDictionary = tree.map(item => item.getPath -> item.getId).toMap
-
+      val files = tree.map(item => IntermediateFile(UUID.randomUUID(), item.getName, item.getPath, item.getId))
       repository.map(r => {
-        val diffs = repositoryApi.compare(project.getId, r.headHash, head.getId).getDiffs.asScala
-        val files = diffs
-          .par
-          .map(diff => IntermediateFile(UUID.randomUUID(), diff.getNewPath.split("/").last, diff.getNewPath))
-          .seq
         ChangedResult(r.copy(headHash = head.getId), files)
       }).getOrElse({
-        val files = tree.map(item => IntermediateFile(UUID.randomUUID(), item.getName, item.getPath))
         ChangedResult(Repository(this.info.id, this.info.id, this.info.title, head.getId), files)
       })
     }
 
-    override def loadFile(path: String, cache: Boolean): File = {
-      // TODO: リポジトリ用ストレージの名称のサニタイズ（idにハッシュ値をつける）
-      val file = new File(this.store, path)
-      if (file.exists())
-        file
-      else {
-        val hash = this.hashDictionary.get(path)
-        val stream = this.gitLab.getRepositoryApi.getRawBlobContent(this.projectId, hash.get)
-
-        file.getParentFile.mkdirs()
-        Files.copy(stream, file.toPath)
-        file
-      }
-    }
-
-    override def deleteCache(path: String): Unit = {
-      val file = new File(this.store, path)
-      file.delete()
+    override def loadFile(file: FileEntry): Array[Byte] = {
+      val stream = this.gitLab.getRepositoryApi.getRawBlobContent(this.projectId, file.blobId)
+      ByteStreams.toByteArray(stream)
     }
   }
 }
