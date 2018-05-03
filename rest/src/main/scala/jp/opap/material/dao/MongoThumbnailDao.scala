@@ -2,14 +2,14 @@ package jp.opap.material.dao
 
 import com.mongodb.client.MongoDatabase
 import jp.opap.material.dao.MongoThumbnailDao.infoFromDocument
-import jp.opap.material.model.Thumbnails.ThumbnailInfo
+import jp.opap.material.model.Thumbnail
 import org.bson.Document
 import org.bson.types.Binary
 
 class MongoThumbnailDao(mongo: MongoDatabase) extends MongoDao(mongo) {
   override def collectionName = "thumbnails"
 
-  def insert(thumbnail: ThumbnailInfo, data: Array[Byte]): Unit = {
+  def insert(thumbnail: Thumbnail, data: Array[Byte]): Unit = {
     val document = new Document()
       .append("_id", thumbnail.id)
       .append("width", thumbnail.width)
@@ -18,7 +18,7 @@ class MongoThumbnailDao(mongo: MongoDatabase) extends MongoDao(mongo) {
     this.collection.insertOne(document)
   }
 
-  def find(id: String): Option[ThumbnailInfo] = {
+  def find(id: String): Option[Thumbnail] = {
     this.findOneByKey("_id", id)
       .map(infoFromDocument)
   }
@@ -29,10 +29,10 @@ class MongoThumbnailDao(mongo: MongoDatabase) extends MongoDao(mongo) {
 }
 
 object MongoThumbnailDao {
-  def infoFromDocument(document: Document): ThumbnailInfo = {
+  def infoFromDocument(document: Document): Thumbnail = {
     val id = document.getString("_id")
     val width = document.getInteger("width")
     val height = document.getInteger("height")
-    ThumbnailInfo(id, width, height)
+    Thumbnail(id, width, height)
   }
 }

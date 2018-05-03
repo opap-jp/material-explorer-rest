@@ -8,7 +8,7 @@ import jp.opap.material.dao.MongoComponentDao.FileAndThumbnail
 import jp.opap.material.dao.MongoDao.Documents
 import jp.opap.material.model.ComponentEntry
 import jp.opap.material.model.ComponentEntry.{DirectoryEntry, FileEntry}
-import jp.opap.material.model.Thumbnails.ThumbnailInfo
+import jp.opap.material.model.Thumbnail
 import org.bson.Document
 
 import scala.beans.BeanProperty
@@ -111,7 +111,7 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
 }
 
 object MongoComponentDao {
-  case class FileAndThumbnail(@BeanProperty file: FileEntry, @BeanProperty thumbnail: ThumbnailInfo)
+  case class FileAndThumbnail(@BeanProperty file: FileEntry, @BeanProperty thumbnail: Thumbnail)
 }
 
 

@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import com.mongodb.MongoGridFSException
 import com.mongodb.client.MongoDatabase
-import com.mongodb.client.gridfs.{GridFSDownloadStream, GridFSUploadStream}
+import com.mongodb.client.gridfs.GridFSUploadStream
 
 class GridFsCacheDao(mongo: MongoDatabase) extends GridFsDao(mongo) with CacheDao {
   override def insert(key: String, data: Array[Byte]): Unit = {

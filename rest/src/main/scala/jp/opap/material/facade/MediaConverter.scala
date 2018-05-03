@@ -4,14 +4,14 @@ import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
 import jp.opap.material.model.ComponentEntry.FileEntry
-import jp.opap.material.model.Thumbnails.ThumbnailInfo
+import jp.opap.material.model.Thumbnail
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
 trait MediaConverter {
   def shouldDispatch(file: FileEntry): Boolean
-  def convert(original: FileEntry, data: Array[Byte]): (ThumbnailInfo, Array[Byte])
+  def convert(original: FileEntry, data: Array[Byte]): (Thumbnail, Array[Byte])
 }
 
 object MediaConverter {
@@ -21,10 +21,10 @@ object MediaConverter {
         .exists(extension => file.name.toLowerCase.endsWith(extension))
     }
 
-    override def convert(original: FileEntry, data: Array[Byte]):  (ThumbnailInfo, Array[Byte]) = {
+    override def convert(original: FileEntry, data: Array[Byte]):  (Thumbnail, Array[Byte]) = {
       val converted = resize.resize(original, data, 290, 290)
       val bi = ImageIO.read(new ByteArrayInputStream(converted))
-      (ThumbnailInfo(original.blobId, bi.getWidth, bi.getHeight), converted)
+      (Thumbnail(original.blobId, bi.getWidth, bi.getHeight), converted)
     }
   }
 
