@@ -1,18 +1,17 @@
 package jp.opap.material.facade
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
-import com.google.common.io.Files
 import jp.opap.material.model.ComponentEntry.FileEntry
-import jp.opap.material.model.Thumbnails.Thumbnail
+import jp.opap.material.model.Thumbnails.ThumbnailInfo
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
 trait MediaConverter {
   def shouldDispatch(file: FileEntry): Boolean
-  def convert(original: FileEntry, file: File): Thumbnail
+  def convert(original: FileEntry, data: Array[Byte]): (ThumbnailInfo, Array[Byte])
 }
 
 object MediaConverter {
@@ -22,23 +21,23 @@ object MediaConverter {
         .exists(extension => file.name.toLowerCase.endsWith(extension))
     }
 
-    override def convert(original: FileEntry, file: File): Thumbnail = {
-      val converted = resize.resize(file, 290, 290)
+    override def convert(original: FileEntry, data: Array[Byte]):  (ThumbnailInfo, Array[Byte]) = {
+      val converted = resize.resize(original, data, 290, 290)
       val bi = ImageIO.read(new ByteArrayInputStream(converted))
-      Thumbnail(original.id, converted, bi.getWidth, bi.getHeight)
+      (ThumbnailInfo(original.blobId, bi.getWidth, bi.getHeight), converted)
     }
   }
 
   trait IResize {
-    def resize(file: File, width: Int, height: Int): Array[Byte]
+    def resize(original: FileEntry, data: Array[Byte], width: Int, height: Int): Array[Byte]
   }
 
   class RestResize(val host: String) extends IResize {
-    override def resize(file: File, width: Int, height: Int): Array[Byte] = {
+    override def resize(original: FileEntry, data: Array[Byte], width: Int, height: Int): Array[Byte] = {
       val entity = MultipartEntityBuilder.create()
         .addTextBody("width", width.toString, ContentType.TEXT_PLAIN)
         .addTextBody("height", height.toString, ContentType.TEXT_PLAIN)
-        .addBinaryBody("data", Files.toByteArray(file), ContentType.MULTIPART_FORM_DATA, file.getName)
+        .addBinaryBody("data", data, ContentType.MULTIPART_FORM_DATA, original.name)
         .build()
       Request.Post(host + "/resize")
         .body(entity)

@@ -26,6 +26,7 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
       .append("path", component.path)
 
     def fileDocument(file: FileEntry): Document = new Document()
+      .append("blob_id", file.blobId)
 
     val document = item match {
       case component: DirectoryEntry => componentDocument(component).append("_constructor", "CompositeElement")
@@ -75,7 +76,7 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
     }
 
     val pipeline = List(
-      "{ $lookup: { from: 'thumbnails', localField: '_id', foreignField: 'file_id', as: 'thumbnail' } }",
+      "{ $lookup: { from: 'thumbnails', localField: 'blob_id', foreignField: '_id', as: 'thumbnail' } }",
       "{ $match: { thumbnail: { $size: 1 } } }",
       "{ $project: { 'thumbnail.data': false } }"
     ).map(BasicDBObject.parse).asJava
@@ -99,10 +100,11 @@ class MongoComponentDao(mongo: MongoDatabase) extends MongoDao(mongo) {
       .map(UUID.fromString)
     val name = document.getString("name")
     val path = document.getString("path")
+    val blobId = document.getString("blob_id")
 
     document.getString("_constructor") match {
       case "CompositeElement" => DirectoryEntry(id, repositoryId, parentId, name, path)
-      case "LeafElement" => FileEntry(id, repositoryId, parentId, name, path)
+      case "LeafElement" => FileEntry(id, repositoryId, parentId, name, path, blobId)
       case _ => throw new IllegalArgumentException()
     }
   }

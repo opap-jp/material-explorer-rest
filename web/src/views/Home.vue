@@ -83,7 +83,7 @@ export default class Home extends Vue {
   }
 
   public getThumbnail(thumb: ThumbnailFile): string {
-    return MaterialExplorer.resources.thumbnail(thumb.thumbnail.fileId);
+    return MaterialExplorer.resources.thumbnail(thumb.file.id);
   }
 
   public mounted(): void {

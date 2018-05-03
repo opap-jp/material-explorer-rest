@@ -21,8 +21,8 @@ object ComponentEntry {
   }
 
   case class FileEntry(@BeanProperty id: UUID, @BeanProperty repositoryId: String, @BeanProperty parentId: Option[UUID],
-    @BeanProperty name: String, @BeanProperty path: String) extends ComponentEntry {
+    @BeanProperty name: String, @BeanProperty path: String, blobId: String) extends ComponentEntry {
 
-    def toIntermediate: IntermediateFile = IntermediateFile(this.id, this.name, this.path)
+    def toIntermediate: IntermediateFile = IntermediateFile(this.id, this.name, this.path, this.blobId)
   }
 }

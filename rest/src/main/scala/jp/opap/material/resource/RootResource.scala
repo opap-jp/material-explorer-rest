@@ -41,8 +41,9 @@ class RootResource(val services: ServiceBundle, val eventEmitter: RepositoryData
   def thumbnail(@PathParam("file_id") fileId: String): Response = {
     val id = UUID.fromString(fileId)
     try {
-      val thumbnail = this.thumbnailDao.findById(id).get
-      Response.ok(thumbnail.data)
+      val blobId = this.componentDao.findFileById(id).get.blobId
+      val thumbnail = this.thumbnailDao.findData(blobId).get
+      Response.ok(thumbnail)
         .build()
     } catch {
       case e: NoSuchElementException => Response.status(404).build()
@@ -97,12 +98,8 @@ class RootResource(val services: ServiceBundle, val eventEmitter: RepositoryData
               eventOutput.write(event)
             }
           } catch {
-            case e: NullPointerException => {
-              System.out.println(e)
-            }
-            case e: IOException => {
-              System.out.println(e)
-            }
+            case e: NullPointerException => System.out.println(e)
+            case e: IOException => System.out.println(e)
           }
         }
 
