@@ -10,7 +10,7 @@ import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
 import jp.opap.data.yaml.Yaml
-import jp.opap.material.dao.{GridFsCacheDao, MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
+import jp.opap.material.dao.{CacheDao, GridFsCacheDao, MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
 import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
@@ -84,6 +84,6 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val repositoryDao: MongoRepositoryDao,
     val componentDao: MongoComponentDao,
     val thumbnailDao: MongoThumbnailDao,
-    val cacheDao: GridFsCacheDao
+    val cacheDao: CacheDao
   )
 }

@@ -8,7 +8,8 @@ import javax.ws.rs.{GET, Path, PathParam, Produces}
 import com.fasterxml.jackson.databind.ObjectMapper
 import jp.opap.material.MaterialExplorer.ServiceBundle
 import jp.opap.material.dao.{MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
-import jp.opap.material.facade.{Progress, ProgressListener, RepositoryDataEventEmitter}
+import jp.opap.material.facade.RepositoryDataEventEmitter
+import jp.opap.material.facade.RepositoryDataEventEmitter.{Progress, ProgressListener}
 import org.glassfish.jersey.media.sse.{EventOutput, OutboundEvent, SseFeature}
 
 @Path("")
@@ -46,7 +47,7 @@ class RootResource(val services: ServiceBundle, val eventEmitter: RepositoryData
       Response.ok(thumbnail)
         .build()
     } catch {
-      case e: NoSuchElementException => Response.status(404).build()
+      case _: NoSuchElementException => Response.status(404).build()
     }
   }
 

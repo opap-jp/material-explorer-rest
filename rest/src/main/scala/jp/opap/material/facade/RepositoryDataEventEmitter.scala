@@ -1,5 +1,7 @@
 package jp.opap.material.facade
 
+import jp.opap.material.facade.RepositoryDataEventEmitter.{Progress, ProgressListener}
+
 import scala.beans.BeanProperty
 import scala.collection.mutable
 
@@ -33,9 +35,11 @@ class RepositoryDataEventEmitter() {
   }
 }
 
-trait ProgressListener {
-  def onUpdate(progress: Progress)
-  def onFinish()
-}
+object RepositoryDataEventEmitter {
+  trait ProgressListener {
+    def onUpdate(progress: Progress)
+    def onFinish()
+  }
 
-case class Progress(@BeanProperty current: Int, @BeanProperty max: Int, @BeanProperty processing: String, @BeanProperty name: String)
+  case class Progress(@BeanProperty current: Int, @BeanProperty max: Int, @BeanProperty processing: String, @BeanProperty name: String)
+}
