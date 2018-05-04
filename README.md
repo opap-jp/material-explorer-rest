@@ -119,13 +119,13 @@ Flask アプリケーションが配置されます。
 1. 適当な SBT バージョンを指定してダウンロードします。
 1. Scala プロジェクトが開かれます。
 1. "Edit Configuration" を開き、新規の "Application" を作成します。 <br>
-  ![Edit Configuraion](docs/images/readme-intellij-01.png)<br>
-  ![Edit Configuraion](docs/images/readme-intellij-02.png)
+  ![Edit Configuraion](doc/images/readme-intellij-01.png)<br>
+  ![Edit Configuraion](doc/images/readme-intellij-02.png)
 1. "Name" に適当な名称を入力します。<br>
   "Main class" で `jp.opap.material.MaterialExplorer` を選択します。<br>
   "Program arguments"に `server config.develop.yaml` と入力します。<br>
   "Use classpath module" で "rest" を選択します。<br>
-  ![Edit Configuraion](docs/images/readme-intellij-03.png)
+  ![Edit Configuraion](doc/images/readme-intellij-03.png)
 
 ##### npm 環境
 
