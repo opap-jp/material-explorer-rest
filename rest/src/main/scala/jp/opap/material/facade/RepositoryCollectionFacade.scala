@@ -47,10 +47,9 @@ class RepositoryCollectionFacade(
     })
 
     LOG.info("リポジトリ ローダーを生成しました。")
-
     repositories.foreach(updateRepository)
-
     LOG.info("リポジトリ データの更新が終了しました。")
+    // TODO: 取得リポジトリ設定ファイルで除外されたリポジトリを削除する
   }
 
   def updateRepository(loader: RepositoryLoader): Unit = {
@@ -62,18 +61,16 @@ class RepositoryCollectionFacade(
     val savedRepository = this.services.repositoryDao.findById(info.id)
 
     // データベースに保存されている、ファイルのリストを取得します。
-    // val storedFiles = this.services.componentDao.findFiles(info.id).map(_.toIntermediate)
+    val storedFiles = this.services.componentDao.findFiles(info.id).map(_.toIntermediate)
 
     // リモートリポジトリから、変更されたファイルのリストを取得します。
     val changedResult = loader.loadChangedFiles(savedRepository)
 
-    // TODO: 変更されたファイルのキャッシュを削除します。
-
-    // 保存されているファイルのリストに、変更されたファイルをマージします。変更されたファイルのみ、Id が変化します。
-    // val mergedFiles = (toMap(storedFiles) ++ toMap(changedResult.files)).values.toList.sortBy(file => file.path)
+    // 最新のファイルのリストについて、保存されているファイルのリストとパスが一致するものがあれば、古い ID で書き換えます
+    val files = merge(storedFiles, changedResult.files)
 
     // ファイルのリストからファイルツリーを作ります。
-    val fileTree = intermediateTree(changedResult.files.sortBy(file => file.path))
+    val fileTree = intermediateTree(files.sortBy(file => file.path))
 
     // TODO: すべてのファイルやディレクトリについて、対応するメタデータ（*.yaml, *.md）があればそれを関連づけます。
     // このとき、マスタデータで宣言されていないタグについては警告データを登録します。
@@ -101,6 +98,16 @@ class RepositoryCollectionFacade(
       })
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）のサムネイル生成が終了しました。")
     LOG.info(s"リポジトリ ${loader.info.id}（${loader.info.title}）の更新が終了しました。")
+  }
+
+  def merge(stored: Seq[IntermediateFile], recent: Seq[IntermediateFile]): Seq[IntermediateFile] = {
+    val dictionary = stored.map(file => file.path -> file).toMap
+    recent.map(file =>
+      dictionary.get(file.path ) match {
+        case Some(old) => file.copy(id = old.id)
+        case None => file
+      }
+    )
   }
 
   def intermediateTree(files: Seq[IntermediateFile]): IntermediateComponent = {
