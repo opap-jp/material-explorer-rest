@@ -4,7 +4,7 @@ import java.util.UUID
 
 import jp.opap.data.yaml.Node
 import jp.opap.material.model.Tag.TagName
-import jp.opap.material.model.Warning.GlobalWarning
+import jp.opap.material.model.Warning.ComponentWarning
 
 /**
   * 特定のフォーマット（YAMLなど）で記述され、リポジトリのいろいろな場所にファイルとして配置されることを前提とする、
@@ -12,13 +12,15 @@ import jp.opap.material.model.Warning.GlobalWarning
   * このファイルの名称は AppConfiguration#metadataFileName で設定されます。
   */
 case class MetadataBundle() {
-  def fromYaml(document: Node, idGenerator: () => UUID): (Seq[GlobalWarning], MetadataBundle) = {
-    ???
-  }
 }
 
 object MetadataBundle {
+  def fromYaml(root: Node, idGenerator: () => UUID): (Seq[ComponentWarning], MetadataBundle) = {
+    val items = root("items")
 
+    Seq() -> MetadataBundle()
+  }
+  
   /**
     * 名前（ファイルやディレクトリ）に対して直接的に設定されたメタデータです。メタデータファイルから取得されます。
     */
