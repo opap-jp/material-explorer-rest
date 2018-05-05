@@ -19,5 +19,7 @@ object Tag {
       case t: TagName => this.normalized == t.normalized
       case _ => false
     }
+
+    override def hashCode(): Int = this.normalized.hashCode()
   }
 }
