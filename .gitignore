@@ -1,6 +1,6 @@
-# System Files
-.DS_Store
-Thumbs.db
+temp
 
-# temp files
-/temp
+# Scala
+.idea
+target
+*.class
