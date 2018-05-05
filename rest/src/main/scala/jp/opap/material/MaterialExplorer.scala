@@ -6,6 +6,7 @@ import java.util.UUID
 import javax.servlet.DispatcherType
 
 import com.mongodb.MongoClient
+import com.mongodb.client.MongoDatabase
 import io.dropwizard.Application
 import io.dropwizard.jackson.Jackson
 import io.dropwizard.setup.{Bootstrap, Environment}
@@ -15,6 +16,7 @@ import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.{GitLabRepositoryLoaderFactory, RepositoryCollectionFacade, RepositoryDataEventEmitter}
+import jp.opap.material.health.HealthChecks.MongoHealthCheck
 import jp.opap.material.model.{Manifest, RepositoryConfig}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
@@ -33,14 +35,14 @@ object MaterialExplorer extends Application[AppConfiguration] {
   override def run(configuration: AppConfiguration, environment: Environment): Unit = {
     def getServiceBundle: ServiceBundle = {
       val dbClient = new MongoClient(configuration.dbHost)
-      val db = dbClient.getDatabase("material_explorer")
+      val db = dbClient.getDatabase(configuration.dbName)
 
       val repositoryDao = new MongoRepositoryDao(db)
       val componentDao = new MongoComponentDao(db)
       val thumbnailDao = new MongoThumbnailDao(db)
       val cacheDao = new GridFsCacheDao(db)
 
-      new ServiceBundle(repositoryDao, componentDao, thumbnailDao, cacheDao)
+      new ServiceBundle(db, repositoryDao, componentDao, thumbnailDao, cacheDao)
     }
 
     val serviceBundle = getServiceBundle
@@ -52,6 +54,8 @@ object MaterialExplorer extends Application[AppConfiguration] {
     server.register(rootResource)
 
     val servlets = environment.servlets()
+
+    environment.healthChecks().register("mongodb", new MongoHealthCheck(serviceBundle.db, configuration))
 
     val cors = servlets.addFilter("CORS", classOf[CrossOriginFilter])
     cors.setInitParameter("allowedOrigins", "*")
@@ -81,6 +85,7 @@ object MaterialExplorer extends Application[AppConfiguration] {
   }
 
   class ServiceBundle(
+    val db: MongoDatabase,
     val repositoryDao: MongoRepositoryDao,
     val componentDao: MongoComponentDao,
     val thumbnailDao: MongoThumbnailDao,

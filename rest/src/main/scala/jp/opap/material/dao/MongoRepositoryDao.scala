@@ -1,12 +1,12 @@
 package jp.opap.material.dao
 
 import com.mongodb.BasicDBObject
+import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.UpdateOptions
-import com.mongodb.client.{MongoCollection, MongoDatabase}
+import jp.opap.material.dao.MongoRepositoryDao.fromDocument
 import jp.opap.material.data.Collections.Iterables
 import jp.opap.material.model.Repository
 import org.bson.Document
-import jp.opap.material.dao.MongoRepositoryDao.fromDocument
 
 class MongoRepositoryDao(mongo: MongoDatabase) extends MongoDao(mongo) {
   override def collectionName = "repositories"

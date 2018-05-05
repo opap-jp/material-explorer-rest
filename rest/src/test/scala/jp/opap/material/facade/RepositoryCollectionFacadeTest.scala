@@ -2,6 +2,7 @@ package jp.opap.material.facade
 
 import java.nio.file.Files
 
+import com.mongodb.client.MongoDatabase
 import jp.opap.material.AppConfiguration
 import jp.opap.material.MaterialExplorer.ServiceBundle
 import jp.opap.material.dao.{GridFsCacheDao, MongoComponentDao, MongoRepositoryDao, MongoThumbnailDao}
@@ -16,12 +17,13 @@ class RepositoryCollectionFacadeTest extends FunSpec {
     ignore("should ...") {
       val dir = Files.createTempDirectory("material")
 
+      val db = mock(classOf[MongoDatabase])
       val repositories = mock(classOf[MongoRepositoryDao])
       val components = mock(classOf[MongoComponentDao])
       val thumbs =  mock(classOf[MongoThumbnailDao])
       val caches = mock(classOf[GridFsCacheDao])
 
-      val services = new ServiceBundle(repositories, components, thumbs, caches)
+      val services = new ServiceBundle(db, repositories, components, thumbs, caches)
       val converters = Seq(mock(classOf[ImageConverter]))
       val factories = Seq(MockRepositoryLoaderFactory)
       val emitter = new RepositoryDataEventEmitter()

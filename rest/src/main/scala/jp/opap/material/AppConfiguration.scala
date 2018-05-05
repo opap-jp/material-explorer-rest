@@ -12,6 +12,10 @@ class AppConfiguration extends Configuration {
 
   @BeanProperty
   @NotEmpty
+  var dbName: String = _
+
+  @BeanProperty
+  @NotEmpty
   var repositories: String = _
 
   @BeanProperty
