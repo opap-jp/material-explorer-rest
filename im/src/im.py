@@ -5,6 +5,10 @@ MAX_THUMB_LENGTH = 3840
 
 app =  Flask(__name__)
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    return "pong"
+
 @app.route('/resize', methods=['POST'])
 def resize():
     def validated_data():

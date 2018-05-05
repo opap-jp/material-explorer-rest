@@ -16,7 +16,7 @@ import jp.opap.material.data.JavaScriptPrettyPrinter.PrettyPrintFilter
 import jp.opap.material.data.JsonSerializers.AppSerializerModule
 import jp.opap.material.facade.MediaConverter.{ImageConverter, RestResize}
 import jp.opap.material.facade.{GitLabRepositoryLoaderFactory, RepositoryCollectionFacade, RepositoryDataEventEmitter}
-import jp.opap.material.health.HealthChecks.MongoHealthCheck
+import jp.opap.material.health.HealthChecks.{ImageMagickHealthCheck, MongoHealthCheck}
 import jp.opap.material.model.{Manifest, RepositoryConfig}
 import jp.opap.material.resource.RootResource
 import org.eclipse.jetty.servlets.CrossOriginFilter
@@ -41,8 +41,9 @@ object MaterialExplorer extends Application[AppConfiguration] {
       val componentDao = new MongoComponentDao(db)
       val thumbnailDao = new MongoThumbnailDao(db)
       val cacheDao = new GridFsCacheDao(db)
+      val resize = new RestResize(configuration.imageMagickHost)
 
-      new ServiceBundle(db, repositoryDao, componentDao, thumbnailDao, cacheDao)
+      new ServiceBundle(db, repositoryDao, componentDao, thumbnailDao, cacheDao, resize)
     }
 
     val serviceBundle = getServiceBundle
@@ -55,7 +56,9 @@ object MaterialExplorer extends Application[AppConfiguration] {
 
     val servlets = environment.servlets()
 
-    environment.healthChecks().register("mongodb", new MongoHealthCheck(serviceBundle.db, configuration))
+    val healthChecks = environment.healthChecks()
+    healthChecks.register("mongodb", new MongoHealthCheck(serviceBundle.db))
+    healthChecks.register("imagemagick", new ImageMagickHealthCheck(serviceBundle.resize))
 
     val cors = servlets.addFilter("CORS", classOf[CrossOriginFilter])
     cors.setInitParameter("allowedOrigins", "*")
@@ -76,7 +79,7 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val repositories = RepositoryConfig.fromYaml(Yaml.parse(new File(configuration.repositories)))
 
     val context = RepositoryCollectionFacade.Context(manifest, repositories)
-    val converters =Seq(new ImageConverter(new RestResize(configuration.imageMagickHost)))
+    val converters =Seq(new ImageConverter(services.resize))
     val loaders = Seq(new GitLabRepositoryLoaderFactory(configuration))
 
     val facade = new RepositoryCollectionFacade(context, services, converters, loaders, configuration, eventEmitter)
@@ -89,6 +92,7 @@ object MaterialExplorer extends Application[AppConfiguration] {
     val repositoryDao: MongoRepositoryDao,
     val componentDao: MongoComponentDao,
     val thumbnailDao: MongoThumbnailDao,
-    val cacheDao: CacheDao
+    val cacheDao: CacheDao,
+    val resize: RestResize
   )
 }

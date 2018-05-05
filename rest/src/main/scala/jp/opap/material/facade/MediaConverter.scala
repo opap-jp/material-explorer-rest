@@ -33,6 +33,14 @@ object MediaConverter {
   }
 
   class RestResize(val host: String) extends IResize {
+    def ping(): String = {
+      Request.Get(host + "/ping")
+        .connectTimeout(1000)
+        .execute()
+        .returnContent()
+        .asString()
+    }
+
     override def resize(original: FileEntry, data: Array[Byte], width: Int, height: Int): Array[Byte] = {
       val entity = MultipartEntityBuilder.create()
         .addTextBody("width", width.toString, ContentType.TEXT_PLAIN)
