@@ -30,11 +30,10 @@ object Warning {
   case class RepositoryWarning(id: UUID, message: String, caused: Option[String], repositoryId: String) extends Warning
 
   /**
-    * コンポーネント（ファイルやフォルダ）に関連して生じる警告を表現するクラスです。
+    * コンポーネント（ファイルやディレクトリ）に関連して生じる警告を表現するクラスです。
     *
     * @param caused この警告が、例外が発生したことによるものであるとき、その例外のメッセージ
-    * @param repositoryId コンポーネントのリポジトリID
-    * @param path コンポーネントのパス
+    * @param componentId コンポーネントID
     */
-  case class ComponentWarning(id: UUID, message: String, caused: Option[String], repositoryId: String, path: String) extends Warning
+  case class ComponentWarning(id: UUID, message: String, caused: Option[String], componentId: UUID) extends Warning
 }

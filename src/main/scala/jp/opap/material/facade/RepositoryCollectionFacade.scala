@@ -171,7 +171,7 @@ class RepositoryCollectionFacade(
       *
       * @param tree コンポーネントの木。変換の対象です。
       * @param parentId 変換の対象のコンポーネントの親コンポーネントの ID。木のルートに関する呼び出しのときのみ None です。
-      * @return コンポーネントのリスト。ファイルとフォルダです。
+      * @return コンポーネントのリスト。ファイルとディレクトリです。
       */
     def list(tree: IntermediateComponent, parentId: Option[UUID]):  List[ComponentEntry]  = {
       tree match {
@@ -208,7 +208,7 @@ class RepositoryCollectionFacade(
           } catch {
             case e: IOException =>
               val warning = ComponentWarning(UUID.randomUUID(), s"${loader.info.id} - ${file.path} のサムネイルの生成に失敗しました。",
-                Option(e.getMessage), file.repositoryId, file.path)
+                Option(e.getMessage), file.id)
               // TODO: 警告の登録（現在はログ出力）
               LOG.info(warning.message)
               e.printStackTrace()

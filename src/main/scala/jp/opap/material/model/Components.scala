@@ -21,7 +21,7 @@ object Components {
     * @param id ID
     * @param name ディレクトリ名
     * @param path パス。empty のとき、ルート要素です。
-    * @param children このディレクトリに属するファイルやフォルダ
+    * @param children このディレクトリに属するファイルやディレクトリ
     */
   case class IntermediateDirectory(id: UUID, name: String, path: Option[String], children: Map[String, IntermediateComponent]) extends IntermediateComponent {
   }
