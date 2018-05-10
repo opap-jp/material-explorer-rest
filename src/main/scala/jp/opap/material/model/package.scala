@@ -18,10 +18,10 @@ package object model {
       Yaml {
         supplier
       }.left.map {
-        e: YamlException => toWarning(e, context)
+        e: YamlException => messageFromYaml(e, context)
       }
     } catch {
-      case e: DeserializationException => Left(toWarning(e, context))
+      case e: DeserializationException => Left(messageFromDeserialization(e, context))
     }
   }
 
@@ -30,12 +30,12 @@ package object model {
       val s = supplier
       s._1 -> Option(s._2)
     } catch {
-      case e: YamlException => List(toWarning(e, context)) -> None
-      case e: DeserializationException => List(toWarning(e, context)) -> None
+      case e: YamlException => List(messageFromYaml(e, context)) -> None
+      case e: DeserializationException => List(messageFromDeserialization(e, context)) -> None
     }
   }
 
-  private def toWarning(exception: YamlException, context: ExceptionContext): Warning = {
+  private def messageFromYaml(exception: YamlException, context: ExceptionContext): Warning = {
     val nonMapping =
       (node: Node) => s"${node.location}: ${WARNING_NODE_TYPE_INVALID.format(node.getClass.getSimpleName)}"
 
@@ -48,19 +48,17 @@ package object model {
       case TypeException(node) => nonMapping(node)
       case UnsupportedMappingKeyException(_, _) => WARNING_UNSUPPORTED_MAPPING_KEY
     }
-
-    val id = UUID.randomUUID()
-    context match {
-      case GlobalContext => GlobalWarning(id, message, None)
-      case RepositoryContext(repositoryId) => RepositoryWarning(id, message, None, repositoryId)
-      case ComponentContext(componentId) => ComponentWarning(id, message, None, componentId)
-    }
+    toWarning(context, message, UUID.randomUUID)
   }
 
-  private def toWarning(e: DeserializationException, context: ExceptionContext): Warning = {
+  private def messageFromDeserialization(e: DeserializationException, context: ExceptionContext): Warning = {
     val location = e.focus.map(l => s"${l.location}: ").getOrElse("")
-    val id = UUID.randomUUID()
     val message = location + e.message
+    toWarning(context, message, UUID.randomUUID)
+  }
+
+  private def toWarning(context: ExceptionContext, message: String, idGenerator: () => UUID): Warning = {
+    val id = idGenerator()
     context match {
       case GlobalContext => GlobalWarning(id, message, None)
       case RepositoryContext(repositoryId) => RepositoryWarning(id, message, None, repositoryId)
