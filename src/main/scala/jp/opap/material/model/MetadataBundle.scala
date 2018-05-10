@@ -20,7 +20,7 @@ object MetadataBundle {
 
     Seq() -> MetadataBundle()
   }
-  
+
   /**
     * 名前（ファイルやディレクトリ）に対して直接的に設定されたメタデータです。メタデータファイルから取得されます。
     */

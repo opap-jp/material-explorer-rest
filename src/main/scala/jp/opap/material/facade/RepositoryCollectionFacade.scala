@@ -12,7 +12,7 @@ import jp.opap.material.model.Components.{IntermediateComponent, IntermediateDir
 import jp.opap.material.model.MetaComponent.{MetaDirectory, MetaFile}
 import jp.opap.material.model.RepositoryConfig.RepositoryInfo
 import jp.opap.material.model.Warning.{ComponentWarning, GlobalWarning}
-import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, Metadata, RepositoryConfig}
+import jp.opap.material.model.{ComponentEntry, Manifest, MetaComponent, Metadata, RepositoryConfig, Warning}
 import org.slf4j.{Logger, LoggerFactory}
 
 class RepositoryCollectionFacade(
@@ -223,5 +223,5 @@ class RepositoryCollectionFacade(
 object RepositoryCollectionFacade {
   val WARNING_NO_SUCH_LOADER: String = "%1$s - このリポジトリの取得方式に対応していません。"
 
-  case class Context(manifest: (Seq[GlobalWarning], Manifest), repositoryConfig: (Seq[GlobalWarning], RepositoryConfig))
+  case class Context(manifest: (Seq[Warning], Manifest), repositoryConfig: (Seq[Warning], RepositoryConfig))
 }

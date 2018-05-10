@@ -25,9 +25,9 @@ object Manifest {
   val WARNING_SELECTOR_MODE_REQUIRED: String = "include または exclude が必要です。"
   val WARNING_NAME_REQUIRED: String = "names または generic_replacement に一つ以上の名称が必要です。"
 
-  def fromYaml(document: Node, idGenerator: () => UUID): (Seq[GlobalWarning], Manifest) = {
-    def extractTagGroup(node: Node): (Seq[GlobalWarning], Option[TagGroup]) = {
-      def extractTag(node: Node): Either[GlobalWarning, Tag]  = withWarning {
+  def fromYaml(document: Node, idGenerator: () => UUID): (Seq[Warning], Manifest) = {
+    def extractTagGroup(node: Node): (Seq[Warning], Option[TagGroup]) = {
+      def extractTag(node: Node): Either[Warning, Tag] = withWarning(GlobalContext) {
         val generic = node("generic_replacement").string.option
         val names = node("names") match {
           case StringNode(name, _) => List(name)
@@ -40,18 +40,18 @@ object Manifest {
         if (tag.names.nonEmpty || tag.generic.nonEmpty)
           tag
         else
-          throw GlobalException(WARNING_NAME_REQUIRED, Some(node))
+          throw DeserializationException(WARNING_NAME_REQUIRED, Some(node))
       }
 
-      withWarnings {
+      withWarnings(GlobalContext) {
         val kind = node("kind").string.option.map(x => Kind.parse(x) match {
           case Some(y) => y
-          case None => throw GlobalException(WARNING_NO_SUCH_KIND_EXISTS.format(x), Option(node))
+          case None => throw DeserializationException(WARNING_NO_SUCH_KIND_EXISTS.format(x), Option(node))
         }).getOrElse(Kind.Common)
 
         val name = node("name").string.option.getOrElse(kind.defaultName match {
           case Some(value) => value
-          case None => throw GlobalException(WARNING_GROUP_NAME_REQUIRED.format(kind.identifier), Option(node))
+          case None => throw DeserializationException(WARNING_GROUP_NAME_REQUIRED.format(kind.identifier), Option(node))
         })
 
         val tags = node("tags").list.map(extractTag).toList
@@ -60,19 +60,19 @@ object Manifest {
       }
     }
 
-    def extractSelector(node: Node): Either[GlobalWarning, Selector] = {
+    def extractSelector(node: Node): Either[Warning, Selector] = {
       def extractExtensions(node: Node): FilePredicate = ExtensionSetPredicate(node("extensions").list.map(node => node.string.get).toList)
 
-      withWarning {
+      withWarning(GlobalContext) {
         node.mapping.toMap match {
           case x if x.contains("include") => Selector(Inclusive, extractExtensions(node("include")))
           case x if x.contains("exclude") => Selector(Exclusive, extractExtensions(node("exclusive")))
-          case _ => throw GlobalException(WARNING_SELECTOR_MODE_REQUIRED, Option(node))
+          case _ => throw DeserializationException(WARNING_SELECTOR_MODE_REQUIRED, Option(node))
         }
       }
     }
 
-    def validate(warnings: Seq[GlobalWarning], manifest: Manifest): (Seq[GlobalWarning], Manifest) = {
+    def validate(warnings: Seq[Warning], manifest: Manifest): (Seq[Warning], Manifest) = {
       val duplications = manifest.tagGroups.flatMap(group => group.tags)
         .flatMap(tag => tag.names ++ tag.generic)
         .groupByOrdered(name => name.normalized)
@@ -94,7 +94,7 @@ object Manifest {
       (warnings ++ w, m)
     }
 
-    val manifest = withWarnings {
+    val manifest = withWarnings(GlobalContext) {
       val tagGroups = document("tag_groups").list.map(extractTagGroup).toSeq
       val selectors = document("selectors").list.map(extractSelector).toSeq
       val warnings = tagGroups.flatMap(item => item._1) ++ selectors.left
@@ -110,9 +110,9 @@ object Manifest {
   /**
     * タグの種別を表現します。
     *
-    * @param identifier この種別の識別子。タグ定義ファイルで使用されることがあります。
+    * @param identifier  この種別の識別子。タグ定義ファイルで使用されることがあります。
     * @param defaultName 既定の名称。None の場合、この種別が設定されたグループには名前が必要です。
-    * @param unique true の場合、この種別のグループはタグ定義に1つしか存在できません。
+    * @param unique      true の場合、この種別のグループはタグ定義に1つしか存在できません。
     */
   sealed abstract class Kind(val identifier: String, val defaultName: Option[String], val unique: Boolean)
 
@@ -124,20 +124,25 @@ object Manifest {
     }
 
     case object Common extends Kind("common", None, false)
+
     case object Author extends Kind("author", Some("作成者"), true)
+
     case object Undeclared extends Kind("undeclared", Some("未宣言"), true)
+
   }
 
   /**
     * ファイルが検索対象であるかを判定する型です。
     *
-    * @param mode セレクタのモード。述語が選択したものを対象とするかしないかを表します。
+    * @param mode      セレクタのモード。述語が選択したものを対象とするかしないかを表します。
     * @param predicate 述語。ファイルを特定のロジックで選択します。
     */
   case class Selector(mode: SelectorMode, predicate: FilePredicate)
 
   sealed trait SelectorMode
+
   case object Inclusive extends SelectorMode
+
   case object Exclusive extends SelectorMode
 
   sealed trait FilePredicate
@@ -154,10 +159,10 @@ object Manifest {
   /**
     * 文字列を、タグの内部表現として正規化します。
     * <ul>
-    *   <li>半角スペースと全角スペースが削除されます。</li>
-    *   <li>全角英数は半角英数に変換されます。</li>
-    *   <li>カタカナはひらがなに変換されます。</li>
-    *   <li>大文字は小文字に変換されます。</li>
+    * <li>半角スペースと全角スペースが削除されます。</li>
+    * <li>全角英数は半角英数に変換されます。</li>
+    * <li>カタカナはひらがなに変換されます。</li>
+    * <li>大文字は小文字に変換されます。</li>
     * </ul>
     *
     * @param target 正規化の対象
@@ -167,8 +172,8 @@ object Manifest {
     def singleByte(character: Char): Char = {
       val c = character.toInt
       if ((c >= '０' && c <= '９') || (c >= 'Ａ' && c <= 'Ｚ') || (c >= 'ａ' && c <= 'ｚ'))
-        // 0xFEE0 は、半角と全角のオフセット
-        (c  - 0xFEE0).toChar
+      // 0xFEE0 は、半角と全角のオフセット
+        (c - 0xFEE0).toChar
       else
         character
     }

@@ -38,21 +38,21 @@ object RepositoryConfig {
   }
 
 
-  def fromYaml(document: Node): (List[GlobalWarning], RepositoryConfig) = {
-    def extractItem(node: Node): Either[GlobalWarning, RepositoryInfo] = {
-      withWarning {
+  def fromYaml(document: Node): (List[Warning], RepositoryConfig) = {
+    def extractItem(node: Node): Either[Warning, RepositoryInfo] = {
+      withWarning(GlobalContext) {
         val id = node("id").string.get.toLowerCase
         if (PATTERN_ID.findFirstIn(id).isEmpty)
-          throw GlobalException(WARNING_INVALID_ID.format(id), Option(node))
+          throw DeserializationException(WARNING_INVALID_ID.format(id), Option(node))
         node("protocol").string.get match {
           case "gitlab" =>
             GitlabRepositoryInfo(id, node("title").string.get, node("host").string.get, node("namespace").string.get, node("name").string.get)
-          case protocol => throw GlobalException(WARNING_NO_SUCH_PROTOCOL.format(protocol), Option(node))
+          case protocol => throw DeserializationException(WARNING_NO_SUCH_PROTOCOL.format(protocol), Option(node))
         }
       }
     }
 
-    def validate(warnings: List[GlobalWarning], config: RepositoryConfig): (List[GlobalWarning], RepositoryConfig) = {
+    def validate(warnings: List[Warning], config: RepositoryConfig): (List[Warning], RepositoryConfig) = {
       val duplications = config.repositories.groupByOrdered(info => info.id)
         .filter(entry => entry._2.size > 1)
       val duplicationSet = duplications.map(_._1).toSet
@@ -62,12 +62,11 @@ object RepositoryConfig {
       (warnings ++ w, c)
     }
 
-    val repositories = withWarnings {
+    val repositories = withWarnings(GlobalContext) {
       val items = document("repositories").list.map(extractItem).toList
       items.left -> RepositoryConfig(items.right.toList)
     }
 
     validate(repositories._1.toList, repositories._2.getOrElse(RepositoryConfig(List())))
   }
-
 }
