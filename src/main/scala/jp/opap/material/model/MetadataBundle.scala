@@ -3,10 +3,11 @@ package jp.opap.material.model
 import java.util.UUID
 
 import jp.opap.data.yaml.Node
-import jp.opap.material.data.Collections.{EitherSeq, Seqs}
 import jp.opap.material.model.MetadataBundle.{AttachedMetadata, Scope}
 import jp.opap.material.model.Tag.TagName
 import jp.opap.material.model.Warning.ComponentWarning
+//import jp.opap.material.data.Collections.{EitherSeq, Seqs}
+
 
 /**
   * 特定のフォーマット（YAMLなど）で記述され、リポジトリのいろいろな場所にファイルとして配置されることを前提とする、
@@ -22,34 +23,47 @@ object MetadataBundle {
   val WARNING_NO_SUCH_MODE_EXISTS: String = "%1$s - そのようなモードはありません。"
   val WARNING_INVALID_KEY_NAME: String = "%1$s - メタデータに対するキーとして不正な文字列です。"
 
-  def fromYaml(root: Node, idGenerator: () => UUID): (Seq[ComponentWarning], MetadataBundle) = {
-    // TODO: 正しい Context を指定する必要があります。
-    def extractMetadata(key: String, node: Node): (Seq[Warning], Option[AttachedMetadata]) = withWarnings(GlobalContext) {
+  /**
+    * @param root パースされた YAML データのルート要素
+    * @param context YAML ファイルを指すコンテキスト
+    * @param idGenerator ID ジェネレータ―
+    * @return
+    */
+  def fromYaml(root: Node, context: ComponentContext, idGenerator: () => UUID): (Seq[Warning], MetadataBundle) = {
+    def extractMetadata(key: String, node: Node): (Seq[Warning], Option[AttachedMetadata]) = withWarnings(context) {
+      def extractTag(node: Node): (Seq[Warning], Option[TagName]) = {
+        ???
+      }
+
       val scope = Scope.parse(key) match {
         case Some(x) => x
         case None => throw DeserializationException(WARNING_INVALID_KEY_NAME.format(key), Option(node))
       }
       val mode = node("mode").string.option.map(x => Mode.parse(x) match {
-        case Some(y) => x
+        case Some(y) => y
         case None => throw DeserializationException(WARNING_NO_SUCH_MODE_EXISTS.format(x), Option(node))
-      })
+      }).getOrElse(Mode.Merging)
 
-      val tags = node("tags").list
-      Seq[Warning]() -> AttachedMetadata(scope, Seq())
+      val tags = node("tags").list.map(extractTag).toSeq
+      val warnings = tags.flatMap(_._1)
+      warnings -> AttachedMetadata(scope, tags.flatMap(_._2), mode)
+    }
+
+    def validate(warnings: Seq[Warning], subject: MetadataBundle): (Seq[Warning], MetadataBundle) = {
+      ???
     }
 
     val items = root("items").mapping.toMap.map(entry => entry._1 -> extractMetadata(entry._1, entry ._2))
-    val metadataDictionary = items.flatMap(entry => entry._2._2.map(item => entry._1 -> item))
-    val warnings = items.flatMap(entry => entry._2._1)
+    val metadataDictionary = items.flatMap(entry => entry._2._2.map(item => item.scope -> item)).
+    val warnings = items.flatMap(entry => entry._2._1).toSeq
 
-    // Seq() -> MetadataBundle(metadataDictionary)
-    ???
+    warnings -> MetadataBundle(metadataDictionary)
   }
 
   /**
     * 名前（ファイルやディレクトリ）に対して直接的に設定されたメタデータです。メタデータファイルから取得されます。
     */
-  case class AttachedMetadata(scope: Scope, tags: Seq[TagName])
+  case class AttachedMetadata(scope: Scope, tags: Seq[TagName], mode: Mode)
 
   /**
     * メタデータのスコープ。メタデータがどのような範囲で有効かを表します。
