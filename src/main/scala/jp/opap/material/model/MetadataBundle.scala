@@ -54,7 +54,7 @@ object MetadataBundle {
     }
 
     val items = root("items").mapping.toMap.map(entry => entry._1 -> extractMetadata(entry._1, entry ._2))
-    val metadataDictionary = items.flatMap(entry => entry._2._2.map(item => item.scope -> item)).
+    val metadataDictionary = items.flatMap(entry => entry._2._2.map(item => item.scope -> item))
     val warnings = items.flatMap(entry => entry._2._1).toSeq
 
     warnings -> MetadataBundle(metadataDictionary)
