@@ -16,6 +16,8 @@ libraryDependencies ++= Seq(
   ),
   "org.mongodb" % "mongo-java-driver" % "3.5.0",
   "io.dropwizard" % "dropwizard-core" % "1.2.0",
+  "io.dropwizard" % "dropwizard-jdbi" % "1.2.0",
+  "javax.persistence" % "persistence-api" % "1.0.2",
   "org.glassfish.jersey.media" % "jersey-media-sse" % "2.25.1",
   "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.0.201710071750-r",
   "org.apache.httpcomponents" % "httpmime" % "4.5.3",
