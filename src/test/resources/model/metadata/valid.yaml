@@ -1,7 +1,9 @@
 items:
+  *:
+    mode:
   .:
     tags: [動画]
-  bg_light.psd: 
+  bg_light.psd:
     mode: override
     tags: [背景]
   grid.ai:
