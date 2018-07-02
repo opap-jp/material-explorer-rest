@@ -35,10 +35,7 @@ object MetadataBundle {
         ???
       }
 
-      val scope = Scope.parse(key) match {
-        case Some(x) => x
-        case None => throw DeserializationException(WARNING_INVALID_KEY_NAME.format(key), Option(node))
-      }
+      val scope = Scope.parse(key)
       val mode = node("mode").string.option.map(x => Mode.parse(x) match {
         case Some(y) => y
         case None => throw DeserializationException(WARNING_NO_SUCH_MODE_EXISTS.format(x), Option(node))
@@ -71,7 +68,12 @@ object MetadataBundle {
   sealed trait Scope
 
   object Scope {
-    def parse(value: String): Option[Scope] = ???
+
+    def parse(value: String): Scope = value match {
+      case "." => DirectoryScope
+      case "*" => RecursiveScope
+      case x => FileScope(x)
+    }
 
     /**
       * 単一のファイルに対して有効です。
