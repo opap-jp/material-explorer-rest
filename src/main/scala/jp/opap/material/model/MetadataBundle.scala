@@ -29,7 +29,7 @@ object MetadataBundle {
     * @param idGenerator ID ジェネレータ―
     * @return
     */
-  def fromYaml(root: Node, context: ComponentContext, manifest: Manifest, idGenerator: () => UUID): (Seq[Warning], MetadataBundle) = {
+  def fromYaml(root: Node, context: ComponentContext, idGenerator: () => UUID): (Seq[Warning], MetadataBundle) = {
     def extractMetadata(key: String, node: Node): (Seq[Warning], Option[AttachedMetadata]) = withWarnings(context) {
       def extractTag(node: Node): (Seq[Warning], Option[TagName]) = {
         ???
