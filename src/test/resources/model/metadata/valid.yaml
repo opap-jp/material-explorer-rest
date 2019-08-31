@@ -1,8 +1,8 @@
+descendants:
+  mode:
+directory:
+  tags: [動画]
 items:
-  *:
-    mode:
-  .:
-    tags: [動画]
   bg_light.psd:
     mode: override
     tags: [背景]
