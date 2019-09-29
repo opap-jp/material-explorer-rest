@@ -3,11 +3,7 @@ package jp.opap.material.model
 import java.util.UUID
 
 import jp.opap.data.yaml.Node
-import jp.opap.material.model.MetadataBundle.{AttachedMetadata, Scope}
-import jp.opap.material.model.Tag.TagName
-import jp.opap.material.model.Warning.ComponentWarning
-//import jp.opap.material.data.Collections.{EitherSeq, Seqs}
-
+import jp.opap.material.model.MetadataBundle.AttachedMetadata
 
 /**
   * 特定のフォーマット（YAMLなど）で記述され、リポジトリのいろいろな場所にファイルとして配置されることを前提とする、
@@ -15,8 +11,11 @@ import jp.opap.material.model.Warning.ComponentWarning
   * このファイルの名称は AppConfiguration#metadataFileName で設定されます。
   * メタデータファイルとして存在する一つのファイルから、一つの MetadataBundle が生成されます。
   */
-case class MetadataBundle(items: Map[Scope, AttachedMetadata]) {
-}
+case class MetadataBundle(
+  descendants: Option[AttachedMetadata],
+  directory: Option[AttachedMetadata],
+  items: Map[String, AttachedMetadata],
+)
 
 object MetadataBundle {
   val WARNING_FAILED_TO_LOAD: String = "メタデータファイルの取得に失敗しました。"
@@ -31,42 +30,26 @@ object MetadataBundle {
     */
   def fromYaml(root: Node, context: ComponentContext, idGenerator: () => UUID): (Seq[Warning], MetadataBundle) = {
     def extractMetadata(key: String, node: Node): (Seq[Warning], Option[AttachedMetadata]) = withWarnings(context) {
-      def extractTag(node: Node): (Seq[Warning], Option[TagName]) = {
-        ???
-      }
-
-      val scope = Scope.parse(key)
-      val mode = node("mode").string.option.map(x => Mode.parse(x) match {
-        case Some(y) => y
-        case None => throw DeserializationException(WARNING_NO_SUCH_MODE_EXISTS.format(x), Option(node))
-      }).getOrElse(Mode.Merging)
-
-      val tags = node("tags").list.map(extractTag).toSeq
-      val warnings = tags.flatMap(_._1)
-      warnings -> AttachedMetadata(scope, tags.flatMap(_._2), mode)
-    }
-
-    def validate(warnings: Seq[Warning], subject: MetadataBundle): (Seq[Warning], MetadataBundle) = {
       ???
     }
 
-    val items = root("items").mapping.toMap.map(entry => entry._1 -> extractMetadata(entry._1, entry ._2))
-    val metadataDictionary = items.flatMap(entry => entry._2._2.map(item => item.scope -> item))
-    val warnings = items.flatMap(entry => entry._2._1).toSeq
-
-    warnings -> MetadataBundle(metadataDictionary)
+    ???
   }
 
   /**
     * 名前（ファイルやディレクトリ）に対して直接的に設定されたメタデータです。メタデータファイルから取得されます。
     */
-  case class AttachedMetadata(scope: Scope, tags: Seq[TagName], mode: Mode)
+  case class AttachedMetadata(mode: Mode, tags: Seq[String])
 
   /**
     * メタデータのスコープ。メタデータがどのような範囲で有効かを表します。
+    * @deprecated
     */
   sealed trait Scope
 
+  /**
+    * @deprecated
+    */
   object Scope {
 
     def parse(value: String): Scope = value match {

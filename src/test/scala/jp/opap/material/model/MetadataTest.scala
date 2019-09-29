@@ -10,9 +10,13 @@ class MetadataTest extends FunSpec {
   val id: UUID = UUID.randomUUID()
 
   describe("fromYaml") {
-    it("妥当なメタデータ") {
+    ignore("妥当なメタデータ") {
       val data = Tests.getResourceAsStrean("model/metadata/valid.yaml")
       val actual = MetadataBundle.fromYaml(Yaml.parse(data), ComponentContext(UUID.randomUUID()), () => this.id)
+      // TODO: expected の記述
+      val expected = MetadataBundle(None, None, Map())
+      assert(actual._2 == expected)
+      fail()
     }
   }
 }
