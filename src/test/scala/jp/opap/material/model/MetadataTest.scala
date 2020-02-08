@@ -4,19 +4,30 @@ import java.util.UUID
 
 import jp.opap.data.yaml.Yaml
 import jp.opap.material.Tests
+import jp.opap.material.model.MetadataBundle.{AttachedMetadata, Mode}
 import org.scalatest.FunSpec
 
 class MetadataTest extends FunSpec {
   val id: UUID = UUID.randomUUID()
 
   describe("fromYaml") {
-    ignore("妥当なメタデータ") {
+    it("妥当なメタデータ") {
       val data = Tests.getResourceAsStrean("model/metadata/valid.yaml")
       val actual = MetadataBundle.fromYaml(Yaml.parse(data), ComponentContext(UUID.randomUUID()), () => this.id)
-      // TODO: expected の記述
-      val expected = MetadataBundle(None, None, Map())
+      val expected = {
+        val descendants = Some(AttachedMetadata(Mode.Merging, Seq()))
+        val directory = Some(AttachedMetadata(Mode.Merging, Seq("動画")))
+        val items = Map(
+          "bg_light.psd" -> AttachedMetadata(Mode.Overriding, Seq("背景")),
+          "grid.ai" -> AttachedMetadata(Mode.Merging, Seq()),
+          "kosys-logo.ai" -> AttachedMetadata(Mode.Merging, Seq("ロゴ")),
+          "logo-anime.aep" -> AttachedMetadata(Mode.Merging, Seq("ロゴ")),
+          "OP_C01.aep" -> AttachedMetadata(Mode.Merging, Seq()),
+        )
+        MetadataBundle(descendants, directory, items)
+      }
+
       assert(actual._2 == expected)
-      fail()
     }
   }
 }

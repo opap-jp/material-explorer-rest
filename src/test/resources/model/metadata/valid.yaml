@@ -7,9 +7,10 @@ items:
     mode: override
     tags: [背景]
   grid.ai:
-    tags:
+    tags: []
   kosys-logo.ai:
     tags: [ロゴ]
   logo-anime.aep:
     tags: [ロゴ]
   OP_C01.aep:
+    tags: []

@@ -2,11 +2,10 @@ package jp.opap.material.model
 
 import java.util.UUID
 
-import jp.opap.data.yaml.InternalNode.ListNode
+import jp.opap.data.yaml.InternalNode.MappingNode
 import jp.opap.data.yaml.Leaf.StringNode
 import jp.opap.data.yaml.Node
 import jp.opap.material.model.MetadataBundle.AttachedMetadata
-import org.yaml.snakeyaml.nodes.MappingNode
 
 /**
   * 特定のフォーマット（YAMLなど）で記述され、リポジトリのいろいろな場所にファイルとして配置されることを前提とする、
@@ -39,13 +38,14 @@ object MetadataBundle {
       })
         .getOrElse(Mode.Merging)
 
-      val tags = node("tags") match {
-        case items: ListNode => items.flatMap {
-          case StringNode(value, _) => Some(value)
-          case _ => None
-        }.toSeq
+      val tags: Seq[String] = node("tags").listOption match {
+        case Some(xs) =>
+          xs.flatMap {
+            case StringNode(value, _) => Some(value)
+            case _ => None
+          }.toSeq
+        case None => Seq()
       }
-
       AttachedMetadata(mode, tags)
     }
 
