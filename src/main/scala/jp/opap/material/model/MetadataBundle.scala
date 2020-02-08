@@ -2,8 +2,11 @@ package jp.opap.material.model
 
 import java.util.UUID
 
+import jp.opap.data.yaml.InternalNode.ListNode
+import jp.opap.data.yaml.Leaf.StringNode
 import jp.opap.data.yaml.Node
 import jp.opap.material.model.MetadataBundle.AttachedMetadata
+import org.yaml.snakeyaml.nodes.MappingNode
 
 /**
   * 特定のフォーマット（YAMLなど）で記述され、リポジトリのいろいろな場所にファイルとして配置されることを前提とする、
@@ -29,11 +32,31 @@ object MetadataBundle {
     * @return
     */
   def fromYaml(root: Node, context: ComponentContext, idGenerator: () => UUID): (Seq[Warning], MetadataBundle) = {
-    def extractMetadata(key: String, node: Node): (Seq[Warning], Option[AttachedMetadata]) = withWarnings(context) {
-      ???
+    def extractMetadata(node: Node): AttachedMetadata = {
+      val mode = (node("mode") match {
+        case StringNode(value, _) => Mode.parse(value)
+        case _ => None
+      })
+        .getOrElse(Mode.Merging)
+
+      val tags = node("tags") match {
+        case items: ListNode => items.flatMap {
+          case StringNode(value, _) => Some(value)
+          case _ => None
+        }.toSeq
+      }
+
+      AttachedMetadata(mode, tags)
     }
 
-    ???
+    val descendants = root("descendants").mappingOption.map(extractMetadata)
+    val directory = root("directory").mappingOption.map(extractMetadata)
+    val items: Map[String, AttachedMetadata] = root("items") match {
+      case elements: MappingNode =>
+        elements.mapping.toMap.mapValues(extractMetadata)
+      case _ => Map()
+    }
+    (Seq(), MetadataBundle(descendants, directory, items))
   }
 
   /**
