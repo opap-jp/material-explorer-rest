@@ -51,14 +51,19 @@ object MetadataBundle {
       AttachedMetadata(mode, tags)
     }
 
-    val descendants = root("descendants").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
-    val directory = root("directory").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
-    val items: Map[String, AttachedMetadata] = root("items") match {
-      case elements: MappingNode =>
-        elements.mapping.toMap.mapValues(extractMetadata)
-      case _ => Map()
+    withWarning(GlobalContext) {
+      val descendants = root("descendants").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
+      val directory = root("directory").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
+      val items: Map[String, AttachedMetadata] = root("items") match {
+        case elements: MappingNode =>
+          elements.mapping.toMap.mapValues(extractMetadata)
+        case _ => Map()
+      }
+      MetadataBundle(descendants, directory, items)
+    } match {
+      case Left(warning) => (Seq(warning), MetadataBundle(DEFAULT_METADATA, DEFAULT_METADATA, Map()))
+      case Right(data) => (Seq(), data)
     }
-    (Seq(), MetadataBundle(descendants, directory, items))
   }
 
   /**
