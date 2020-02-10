@@ -15,14 +15,14 @@ class MetadataTest extends FunSpec {
       val data = Tests.getResourceAsStrean("model/metadata/valid.yaml")
       val actual = MetadataBundle.fromYaml(Yaml.parse(data), ComponentContext(UUID.randomUUID()), () => this.id)
       val expected = {
-        val descendants = Some(AttachedMetadata(Mode.Merging, Seq()))
-        val directory = Some(AttachedMetadata(Mode.Merging, Seq("動画")))
+        val descendants = AttachedMetadata(Mode.Merging, Seq())
+        val directory = AttachedMetadata(Mode.Merging, Seq("動画"))
         val items = Map(
           "bg_light.psd" -> AttachedMetadata(Mode.Overriding, Seq("背景")),
-          "grid.ai" -> AttachedMetadata(Mode.Merging, Seq()),
+          "grid.ai" -> MetadataBundle.DEFAULT_METADATA,
           "kosys-logo.ai" -> AttachedMetadata(Mode.Merging, Seq("ロゴ")),
           "logo-anime.aep" -> AttachedMetadata(Mode.Merging, Seq("ロゴ")),
-          "OP_C01.aep" -> AttachedMetadata(Mode.Merging, Seq()),
+          "OP_C01.aep" -> MetadataBundle.DEFAULT_METADATA,
         )
         MetadataBundle(descendants, directory, items)
       }

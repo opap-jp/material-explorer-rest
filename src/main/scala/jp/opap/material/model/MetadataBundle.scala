@@ -14,12 +14,14 @@ import jp.opap.material.model.MetadataBundle.AttachedMetadata
   * メタデータファイルとして存在する一つのファイルから、一つの MetadataBundle が生成されます。
   */
 case class MetadataBundle(
-  descendants: Option[AttachedMetadata],
-  directory: Option[AttachedMetadata],
+  descendants: AttachedMetadata,
+  directory: AttachedMetadata,
   items: Map[String, AttachedMetadata],
 )
 
 object MetadataBundle {
+  val DEFAULT_METADATA = AttachedMetadata(Mode.Merging, Seq())
+
   val WARNING_FAILED_TO_LOAD: String = "メタデータファイルの取得に失敗しました。"
   val WARNING_NO_SUCH_MODE_EXISTS: String = "%1$s - そのようなモードはありません。"
   val WARNING_INVALID_KEY_NAME: String = "%1$s - メタデータに対するキーとして不正な文字列です。"
@@ -49,8 +51,8 @@ object MetadataBundle {
       AttachedMetadata(mode, tags)
     }
 
-    val descendants = root("descendants").mappingOption.map(extractMetadata)
-    val directory = root("directory").mappingOption.map(extractMetadata)
+    val descendants = root("descendants").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
+    val directory = root("directory").mappingOption.map(extractMetadata).getOrElse(DEFAULT_METADATA)
     val items: Map[String, AttachedMetadata] = root("items") match {
       case elements: MappingNode =>
         elements.mapping.toMap.mapValues(extractMetadata)
