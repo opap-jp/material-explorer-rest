@@ -1,7 +1,7 @@
 name := "material-explorer"
 organization := "jp.opap"
 version := "0.0.1"
-scalaVersion := "2.12.4"
+scalaVersion := "2.13.2"
 javacOptions ++= Seq("-encoding", "UTF-8")
 
 val workaround: Unit = {
@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+  "org.scalatest" %% "scalatest" % "3.2.5" % "test",
   "org.mockito" % "mockito-core" % "2.15.0" % "test"
 )
 
