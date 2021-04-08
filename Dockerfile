@@ -1,6 +1,6 @@
-FROM ubuntu:17.10
+FROM ubuntu:20.04
 
-MAINTAINER OPAP-JP
+LABEL maintainer OPAP-JP
 
 # ローケルを設定します
 ENV LANG en_US.UTF-8
